@@ -1,3 +1,4 @@
+import { Repository } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { TrainingSession } from '../models/TrainingSession';
 import { SessionStatus } from '../types';
@@ -34,7 +35,14 @@ interface SessionListFilters {
 }
 
 class SessionService {
-  private sessionRepository = AppDataSource.getRepository(TrainingSession);
+  private _sessionRepository?: Repository<TrainingSession>;
+
+  private get sessionRepository(): Repository<TrainingSession> {
+    if (!this._sessionRepository) {
+      this._sessionRepository = AppDataSource.getRepository(TrainingSession);
+    }
+    return this._sessionRepository;
+  }
 
   async createSession(data: CreateSessionData) {
     const session = this.sessionRepository.create({

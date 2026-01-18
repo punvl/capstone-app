@@ -1,10 +1,18 @@
 import bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { User } from '../models/User';
 import { generateToken } from '../utils/jwt.utils';
 
 class AuthService {
-  private userRepository = AppDataSource.getRepository(User);
+  private _userRepository?: Repository<User>;
+
+  private get userRepository(): Repository<User> {
+    if (!this._userRepository) {
+      this._userRepository = AppDataSource.getRepository(User);
+    }
+    return this._userRepository;
+  }
 
   async register(email: string, username: string, password: string) {
     // Check if user exists

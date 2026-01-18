@@ -1,3 +1,4 @@
+import { Repository } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { Athlete } from '../models/Athlete';
 import { SkillLevel, DominantHand } from '../types';
@@ -15,7 +16,14 @@ interface CreateAthleteData {
 }
 
 class AthleteService {
-  private athleteRepository = AppDataSource.getRepository(Athlete);
+  private _athleteRepository?: Repository<Athlete>;
+
+  private get athleteRepository(): Repository<Athlete> {
+    if (!this._athleteRepository) {
+      this._athleteRepository = AppDataSource.getRepository(Athlete);
+    }
+    return this._athleteRepository;
+  }
 
   async createAthlete(data: CreateAthleteData) {
     const athlete = this.athleteRepository.create({

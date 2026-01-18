@@ -10,6 +10,9 @@ describe('AthleteService', () => {
   let mockAthleteRepository: ReturnType<typeof createMockRepository<Athlete>>;
 
   beforeEach(() => {
+    // Reset the service's cached repository
+    (athleteService as any)._athleteRepository = undefined;
+
     mockAthleteRepository = createMockRepository<Athlete>();
     (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockAthleteRepository);
     jest.clearAllMocks();

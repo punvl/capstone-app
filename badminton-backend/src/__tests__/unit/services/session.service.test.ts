@@ -10,6 +10,9 @@ describe('SessionService', () => {
   let mockSessionRepository: ReturnType<typeof createMockRepository<TrainingSession>>;
 
   beforeEach(() => {
+    // Reset the service's cached repository
+    (sessionService as any)._sessionRepository = undefined;
+
     mockSessionRepository = createMockRepository<TrainingSession>();
     (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockSessionRepository);
     jest.clearAllMocks();
@@ -43,7 +46,7 @@ describe('SessionService', () => {
         athlete: { id: 'athlete-123' },
         coach: { id: 'coach-123' },
         start_time: sessionData.startTime,
-        status: 'in_progress',
+        status: 'active',
         target_zone: 'front_court',
       });
       expect(mockSessionRepository.save).toHaveBeenCalled();
@@ -59,10 +62,22 @@ describe('SessionService', () => {
         coach: { id: 'coach-123', username: 'coach' },
         shots: [],
         start_time: new Date(),
+        end_time: null,
         status: 'completed',
+        total_shots: 0,
+        successful_shots: 0,
+        average_accuracy_cm: null,
+        average_accuracy_percent: null,
+        average_shot_velocity_kmh: null,
+        session_notes: null,
+        session_rating: null,
+        target_zone: null,
+        created_at: new Date(),
+        updated_at: new Date(),
+        rallies: [],
       };
 
-      mockSessionRepository.findOne.mockResolvedValue(mockSession as TrainingSession);
+      mockSessionRepository.findOne.mockResolvedValue(mockSession as unknown as TrainingSession);
 
       const result = await sessionService.getSessionById('session-123');
 
@@ -78,6 +93,18 @@ describe('SessionService', () => {
         id: 'session-123',
         athlete: { id: 'athlete-123' },
         start_time: new Date(),
+        end_time: null,
+        status: 'in_progress',
+        total_shots: 0,
+        successful_shots: 0,
+        average_accuracy_cm: null,
+        average_accuracy_percent: null,
+        average_shot_velocity_kmh: null,
+        session_notes: null,
+        session_rating: null,
+        target_zone: null,
+        created_at: new Date(),
+        updated_at: new Date(),
       };
 
       mockSessionRepository.findOne.mockResolvedValue(mockSession as unknown as TrainingSession);

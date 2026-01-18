@@ -14,6 +14,9 @@ describe('AuthService', () => {
   let mockUserRepository: ReturnType<typeof createMockRepository<User>>;
 
   beforeEach(() => {
+    // Reset the service's cached repository
+    (authService as any)._userRepository = undefined;
+
     mockUserRepository = createMockRepository<User>();
     (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockUserRepository);
     jest.clearAllMocks();

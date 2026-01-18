@@ -10,6 +10,9 @@ describe('ShotService', () => {
   let mockShotRepository: ReturnType<typeof createMockRepository<Shot>>;
 
   beforeEach(() => {
+    // Reset the service's cached repository
+    (shotService as any)._shotRepository = undefined;
+
     mockShotRepository = createMockRepository<Shot>();
     (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockShotRepository);
     jest.clearAllMocks();
@@ -234,8 +237,19 @@ describe('ShotService', () => {
 
       const mockShot = {
         id: 'shot-perfect',
-        ...perfectShot,
         session: { id: 'session-123' },
+        shot_number: 1,
+        timestamp: perfectShot.timestamp,
+        landing_position_x: 5.0,
+        landing_position_y: 3.0,
+        target_position_x: 5.0,
+        target_position_y: 3.0,
+        accuracy_cm: 0,
+        accuracy_percent: 100,
+        velocity_kmh: 150,
+        detection_confidence: 1.0,
+        was_successful: true,
+        court_zone: 'back_left',
       };
 
       mockShotRepository.create.mockReturnValue(mockShot as never);
@@ -267,8 +281,19 @@ describe('ShotService', () => {
 
       const mockShot = {
         id: 'shot-failed',
-        ...failedShot,
         session: { id: 'session-123' },
+        shot_number: 1,
+        timestamp: failedShot.timestamp,
+        landing_position_x: 1.0,
+        landing_position_y: 1.0,
+        target_position_x: 10.0,
+        target_position_y: 5.0,
+        accuracy_cm: 500,
+        accuracy_percent: 0,
+        velocity_kmh: 50,
+        detection_confidence: 0.6,
+        was_successful: false,
+        court_zone: 'unknown',
       };
 
       mockShotRepository.create.mockReturnValue(mockShot as never);

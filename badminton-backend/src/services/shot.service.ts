@@ -1,3 +1,4 @@
+import { Repository } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { Shot } from '../models/Shot';
 import { CourtZone } from '../types';
@@ -19,7 +20,14 @@ interface CreateShotData {
 }
 
 class ShotService {
-  private shotRepository = AppDataSource.getRepository(Shot);
+  private _shotRepository?: Repository<Shot>;
+
+  private get shotRepository(): Repository<Shot> {
+    if (!this._shotRepository) {
+      this._shotRepository = AppDataSource.getRepository(Shot);
+    }
+    return this._shotRepository;
+  }
 
   async createShot(data: CreateShotData) {
     const shot = this.shotRepository.create({
