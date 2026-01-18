@@ -6,6 +6,26 @@ name: code-quality-standards
 
 You must ALWAYS prioritize code quality and maintainability.
 
+## ⚠️ CRITICAL: Pre-Commit Guardian Requirement
+
+**BEFORE ANY GIT COMMIT**, you MUST:
+1. Use the Task tool to invoke the pre-commit-guardian agent
+2. Wait for the agent to complete its review
+3. Address any issues found
+4. Only then proceed with the commit
+
+**NEVER use `git commit` directly via Bash without first running pre-commit-guardian.**
+
+Example workflow:
+```
+User: "commit these changes"
+Assistant:
+1. First invokes Task tool with subagent_type="pre-commit-guardian"
+2. Reviews the agent's output
+3. Fixes any issues if needed
+4. Then commits (or asks user to commit if issues can't be auto-fixed)
+```
+
 ## General Principles
 
 ### SOLID Principles
