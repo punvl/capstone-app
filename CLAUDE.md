@@ -338,15 +338,11 @@ All detailed documentation is in the `docs/` directory:
 - `GETTING_STARTED.md` - Quick start guide
 - `DEMO_GUIDE.md` - Demo walkthrough
 - `MOCK_CV_SETUP.md` - Mock CV component setup
-- `TESTING_GUIDE.md` - Comprehensive testing guide (300+ lines)
-- `badminton-backend/README.md` - Backend-specific docs
-- `badminton-backend/TEST_README.md` - Backend testing quick start
-- `badminton-frontend/README.md` - Frontend-specific docs
-- `TEST_IMPLEMENTATION_SUMMARY.md` - Test implementation overview
-- `TEST_RESULTS_SUMMARY.md` - Test execution results
-- `TEST_ANALYSIS_AND_FIXES.md` - Root cause analysis of test failures
-- `TEST_FIXES_COMPLETED.md` - Detailed fix implementation
-- `TEST_SUCCESS_FINAL.md` - Final test success breakdown (100% pass rate)
+- `TESTING_COMPLETE.md` - Complete testing guide (consolidated, 100% pass rate)
+- `REFACTORING_SUMMARY.md` - Performance optimization details (99.6% improvement)
+- `IMPLEMENTATION_GUIDE.md` - Deployment instructions for optimizations
+- `BACKEND_README.md` - Backend-specific documentation
+- `FRONTEND_README.md` - Frontend-specific documentation
 
 ## Quick Reference
 
