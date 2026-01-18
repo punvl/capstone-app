@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "user-prompt-submit": {
+      "description": "Run before processing user input to check for commit requests",
+      "command": "node",
+      "args": ["-e", "const input = process.argv[1]; if (input.match(/commit|git commit/i)) { console.log('⚠️ Detected commit request - invoking Pre-Commit Guardian...'); process.exit(1); }"],
+      "blocking": false
+    },
+    "before-tool": {
+      "description": "Run quality checks before Bash tool executes git commands",
+      "match": {
+        "tool": "Bash",
+        "pattern": "git commit"
+      },
+      "command": "echo",
+      "args": ["⚠️ Git commit detected - make sure Pre-Commit Guardian has reviewed changes first!"],
+      "blocking": false
+    }
+  },
+  "config": {
+    "enableHooks": true,
+    "hookTimeout": 30000
+  }
+}
