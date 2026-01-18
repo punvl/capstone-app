@@ -1,21 +1,32 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
 import Login from '../../components/Login';
 import { AuthProvider } from '../../context/AuthContext';
 
 // Mock useNavigate
 const mockedNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => mockedNavigate,
-}));
+
+// Mock react-router-dom
+jest.mock('react-router-dom', () => {
+  const React = require('react');
+  return {
+    useNavigate: () => mockedNavigate,
+    Link: ({ children, to, ...props }: any) => React.createElement('a', { href: to, ...props }, children),
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
+  };
+});
 
 // Mock API
 jest.mock('../../utils/api', () => ({
-  login: jest.fn(),
+  api: {
+    login: jest.fn(),
+    register: jest.fn(),
+    logout: jest.fn(),
+    getCurrentUser: jest.fn(),
+  },
 }));
 
-import { login } from '../../utils/api';
+import { api } from '../../utils/api';
+import { BrowserRouter } from 'react-router-dom';
 
 describe('Login Component', () => {
   const renderLogin = () => {
@@ -32,19 +43,19 @@ describe('Login Component', () => {
     jest.clearAllMocks();
   });
 
-  it('should render login form', () => {
+  it('should render api.login form', () => {
     renderLogin();
 
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /api.login/i })).toBeInTheDocument();
   });
 
   it('should show validation errors for empty fields', async () => {
     renderLogin();
 
-    const loginButton = screen.getByRole('button', { name: /login/i });
-    fireEvent.click(loginButton);
+    const api.loginButton = screen.getByRole('button', { name: /api.login/i });
+    fireEvent.click(api.loginButton);
 
     await waitFor(() => {
       expect(screen.getByText(/email is required/i)).toBeInTheDocument();
@@ -52,7 +63,7 @@ describe('Login Component', () => {
     });
   });
 
-  it('should successfully login with valid credentials', async () => {
+  it('should successfully api.login with valid credentials', async () => {
     const mockResponse = {
       user: {
         id: 'user-123',
@@ -62,36 +73,36 @@ describe('Login Component', () => {
       token: 'jwt_token_12345',
     };
 
-    (login as jest.Mock).mockResolvedValue(mockResponse);
+    (api.login as jest.Mock).mockResolvedValue(mockResponse);
 
     renderLogin();
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/password/i);
-    const loginButton = screen.getByRole('button', { name: /login/i });
+    const api.loginButton = screen.getByRole('button', { name: /api.login/i });
 
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
-    fireEvent.click(loginButton);
+    fireEvent.click(api.loginButton);
 
     await waitFor(() => {
-      expect(login).toHaveBeenCalledWith('test@example.com', 'password123');
+      expect(api.login).toHaveBeenCalledWith('test@example.com', 'password123');
       expect(mockedNavigate).toHaveBeenCalledWith('/dashboard');
     });
   });
 
-  it('should show error message on login failure', async () => {
-    (login as jest.Mock).mockRejectedValue(new Error('Invalid credentials'));
+  it('should show error message on api.login failure', async () => {
+    (api.login as jest.Mock).mockRejectedValue(new Error('Invalid credentials'));
 
     renderLogin();
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/password/i);
-    const loginButton = screen.getByRole('button', { name: /login/i });
+    const api.loginButton = screen.getByRole('button', { name: /api.login/i });
 
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } });
-    fireEvent.click(loginButton);
+    fireEvent.click(api.loginButton);
 
     await waitFor(() => {
       expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();

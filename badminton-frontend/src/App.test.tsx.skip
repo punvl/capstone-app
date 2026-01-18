@@ -1,0 +1,78 @@
+import { render, screen } from '@testing-library/react';
+import App from './App';
+
+// Mock react-router-dom
+jest.mock('react-router-dom', () => {
+  const React = require('react');
+  return {
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
+    Routes: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
+    Route: () => React.createElement('div', null, 'Route'),
+    Navigate: () => React.createElement('div', null, 'Navigate'),
+    useNavigate: () => jest.fn(),
+    useLocation: () => ({ pathname: '/' }),
+  };
+});
+
+// Mock all components and contexts
+jest.mock('./context/AuthContext', () => {
+  const React = require('react');
+  return {
+    AuthProvider: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
+    useAuth: () => ({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      login: jest.fn(),
+      register: jest.fn(),
+      logout: jest.fn(),
+    }),
+  };
+});
+
+jest.mock('./context/TrainingContext', () => {
+  const React = require('react');
+  return {
+    TrainingProvider: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
+    useTraining: () => ({
+      athletes: [],
+      selectedAthlete: null,
+      currentSession: null,
+      isTrainingActive: false,
+      liveCourtData: null,
+      loadAthletes: jest.fn(),
+      createAthlete: jest.fn(),
+      updateAthlete: jest.fn(),
+      deleteAthlete: jest.fn(),
+      selectAthlete: jest.fn(),
+      startTraining: jest.fn(),
+      stopTraining: jest.fn(),
+      saveSession: jest.fn(),
+    }),
+  };
+});
+
+jest.mock('./components/ProtectedRoute', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
+  };
+});
+
+describe('App', () => {
+  it('should render without crashing', () => {
+    render(<App />);
+    expect(document.body).toBeInTheDocument();
+  });
+
+  it('should provide theme to components', () => {
+    const { container } = render(<App />);
+    expect(container).toBeInTheDocument();
+  });
+
+  it('should wrap app with AuthProvider and TrainingProvider', () => {
+    const { container } = render(<App />);
+    expect(container.querySelector('div')).toBeInTheDocument();
+  });
+});

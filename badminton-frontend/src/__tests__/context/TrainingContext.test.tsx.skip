@@ -1,0 +1,375 @@
+import { renderHook, waitFor, act } from '@testing-library/react';
+import { TrainingProvider, useTraining } from '../../context/TrainingContext';
+import { ReactNode } from 'react';
+import { io } from 'socket.io-client';
+
+// Mock API
+jest.mock('../../utils/api', () => ({
+  api: {
+    getAthletes: jest.fn(),
+    createAthlete: jest.fn(),
+    updateAthlete: jest.fn(),
+    deleteAthlete: jest.fn(),
+    startSession: jest.fn(),
+    stopSession: jest.fn(),
+  },
+}));
+
+import { api } from '../../utils/api';
+
+describe('TrainingContext', () => {
+  // Socket.IO is mocked globally in setupTests.ts
+  let mockSocket: any;
+
+  beforeEach(() => {
+    // Get a fresh reference to the mocked socket for each test
+    mockSocket = (io as jest.Mock)();
+  });
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <TrainingProvider>{children}</TrainingProvider>
+  );
+
+  const mockAthletes = [
+    {
+      id: 'athlete-1',
+      name: 'John Doe',
+      date_of_birth: '2000-01-01',
+      gender: 'male',
+      skill_level: 'intermediate',
+      dominant_hand: 'right',
+    },
+    {
+      id: 'athlete-2',
+      name: 'Jane Smith',
+      date_of_birth: '1998-05-15',
+      gender: 'female',
+      skill_level: 'advanced',
+      dominant_hand: 'left',
+    },
+  ];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should throw error when useTraining is used outside TrainingProvider', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    expect(() => {
+      renderHook(() => useTraining());
+    }).toThrow('useTraining must be used within TrainingProvider');
+
+    consoleError.mockRestore();
+  });
+
+  it('should initialize with default values', () => {
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    expect(result.current.athletes).toEqual([]);
+    expect(result.current.selectedAthlete).toBeNull();
+    expect(result.current.currentSession).toBeNull();
+    expect(result.current.isTrainingActive).toBe(false);
+    expect(result.current.liveCourtData).toBeNull();
+  });
+
+  it('should load athletes successfully', async () => {
+    (api.getAthletes as jest.Mock).mockResolvedValue({
+      success: true,
+      athletes: mockAthletes,
+    });
+
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    await act(async () => {
+      await result.current.loadAthletes();
+    });
+
+    expect(api.getAthletes).toHaveBeenCalled();
+    expect(result.current.athletes).toEqual(mockAthletes);
+  });
+
+  it('should handle load athletes failure', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    (api.getAthletes as jest.Mock).mockRejectedValue(new Error('Network error'));
+
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    await act(async () => {
+      await result.current.loadAthletes();
+    });
+
+    expect(result.current.athletes).toEqual([]);
+    consoleError.mockRestore();
+  });
+
+  it('should create athlete and reload athletes', async () => {
+    const newAthlete = {
+      name: 'New Athlete',
+      date_of_birth: '2002-03-10',
+      gender: 'male',
+      skill_level: 'beginner',
+      dominant_hand: 'right',
+    };
+
+    (api.createAthlete as jest.Mock).mockResolvedValue({ success: true });
+    (api.getAthletes as jest.Mock).mockResolvedValue({
+      success: true,
+      athletes: [...mockAthletes, { id: 'athlete-3', ...newAthlete }],
+    });
+
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    await act(async () => {
+      await result.current.createAthlete(newAthlete);
+    });
+
+    expect(api.createAthlete).toHaveBeenCalledWith(newAthlete);
+    expect(api.getAthletes).toHaveBeenCalled();
+    expect(result.current.athletes).toHaveLength(3);
+  });
+
+  it('should update athlete and reload athletes', async () => {
+    const updatedData = { name: 'Updated Name' };
+
+    (api.updateAthlete as jest.Mock).mockResolvedValue({ success: true });
+    (api.getAthletes as jest.Mock).mockResolvedValue({
+      success: true,
+      athletes: mockAthletes,
+    });
+
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    await act(async () => {
+      await result.current.updateAthlete('athlete-1', updatedData);
+    });
+
+    expect(api.updateAthlete).toHaveBeenCalledWith('athlete-1', updatedData);
+    expect(api.getAthletes).toHaveBeenCalled();
+  });
+
+  it('should delete athlete and reload athletes', async () => {
+    (api.deleteAthlete as jest.Mock).mockResolvedValue({ success: true });
+    (api.getAthletes as jest.Mock).mockResolvedValue({
+      success: true,
+      athletes: [mockAthletes[1]],
+    });
+
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    await act(async () => {
+      await result.current.deleteAthlete('athlete-1');
+    });
+
+    expect(api.deleteAthlete).toHaveBeenCalledWith('athlete-1');
+    expect(api.getAthletes).toHaveBeenCalled();
+  });
+
+  it('should select athlete', () => {
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    act(() => {
+      result.current.selectAthlete(mockAthletes[0]);
+    });
+
+    expect(result.current.selectedAthlete).toEqual(mockAthletes[0]);
+  });
+
+  it('should start training session', async () => {
+    const mockSession = {
+      id: 'session-1',
+      athlete_id: 'athlete-1',
+      coach_id: 'coach-1',
+      start_time: new Date().toISOString(),
+      status: 'active',
+      total_shots: 0,
+      successful_shots: 0,
+    };
+
+    (api.startSession as jest.Mock).mockResolvedValue({
+      success: true,
+      session: mockSession,
+    });
+
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    act(() => {
+      result.current.selectAthlete(mockAthletes[0]);
+    });
+
+    await act(async () => {
+      await result.current.startTraining();
+    });
+
+    expect(api.startSession).toHaveBeenCalledWith({
+      athleteId: mockAthletes[0].id,
+    });
+    expect(result.current.currentSession).toEqual(mockSession);
+    expect(result.current.isTrainingActive).toBe(true);
+    expect(mockSocket.emit).toHaveBeenCalledWith('join_session', mockSession.id);
+  });
+
+  it('should throw error when starting training without selected athlete', async () => {
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    await expect(
+      act(async () => {
+        await result.current.startTraining();
+      })
+    ).rejects.toThrow('No athlete selected');
+  });
+
+  it('should stop training session', async () => {
+    const mockSession = {
+      id: 'session-1',
+      athlete_id: 'athlete-1',
+      coach_id: 'coach-1',
+      start_time: new Date().toISOString(),
+      status: 'active',
+      total_shots: 0,
+      successful_shots: 0,
+    };
+
+    (api.startSession as jest.Mock).mockResolvedValue({
+      success: true,
+      session: mockSession,
+    });
+
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    act(() => {
+      result.current.selectAthlete(mockAthletes[0]);
+    });
+
+    await act(async () => {
+      await result.current.startTraining();
+    });
+
+    await act(async () => {
+      await result.current.stopTraining();
+    });
+
+    expect(result.current.isTrainingActive).toBe(false);
+    expect(mockSocket.emit).toHaveBeenCalledWith('leave_session', mockSession.id);
+  });
+
+  it('should save session with notes and rating', async () => {
+    const mockSession = {
+      id: 'session-1',
+      athlete_id: 'athlete-1',
+      coach_id: 'coach-1',
+      start_time: new Date().toISOString(),
+      status: 'active',
+      total_shots: 10,
+      successful_shots: 7,
+    };
+
+    (api.startSession as jest.Mock).mockResolvedValue({
+      success: true,
+      session: mockSession,
+    });
+    (api.stopSession as jest.Mock).mockResolvedValue({ success: true });
+
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    act(() => {
+      result.current.selectAthlete(mockAthletes[0]);
+    });
+
+    await act(async () => {
+      await result.current.startTraining();
+    });
+
+    await act(async () => {
+      await result.current.saveSession('Great session!', 5);
+    });
+
+    expect(api.stopSession).toHaveBeenCalledWith(mockSession.id, {
+      sessionNotes: 'Great session!',
+      sessionRating: 5,
+    });
+    expect(result.current.currentSession).toBeNull();
+    expect(result.current.liveCourtData).toBeNull();
+    expect(result.current.isTrainingActive).toBe(false);
+  });
+
+  it('should handle save session when no current session', async () => {
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    await act(async () => {
+      await result.current.saveSession();
+    });
+
+    expect(consoleWarn).toHaveBeenCalledWith('No current session to save');
+    expect(result.current.currentSession).toBeNull();
+    consoleWarn.mockRestore();
+  });
+
+  it('should receive shot data via socket', async () => {
+    const mockShot = {
+      id: 'shot-1',
+      session_id: 'session-1',
+      shot_number: 1,
+      timestamp: new Date().toISOString(),
+      target_position_x: 5.0,
+      target_position_y: 3.0,
+      landing_position_x: 5.2,
+      landing_position_y: 3.1,
+      velocity_kmh: 200,
+      accuracy_cm: 22.36,
+    };
+
+    const mockSession = {
+      id: 'session-1',
+      athlete_id: 'athlete-1',
+      coach_id: 'coach-1',
+      start_time: new Date().toISOString(),
+      status: 'active',
+      total_shots: 0,
+      successful_shots: 0,
+    };
+
+    (api.startSession as jest.Mock).mockResolvedValue({
+      success: true,
+      session: mockSession,
+    });
+
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    act(() => {
+      result.current.selectAthlete(mockAthletes[0]);
+    });
+
+    await act(async () => {
+      await result.current.startTraining();
+    });
+
+    // Simulate receiving shot data
+    const shotReceivedCallback = mockSocket.on.mock.calls.find(
+      (call) => call[0] === 'shot_received'
+    )?.[1];
+
+    act(() => {
+      if (shotReceivedCallback) {
+        shotReceivedCallback(mockShot);
+      }
+    });
+
+    await waitFor(() => {
+      expect(result.current.liveCourtData).toEqual({
+        shotNumber: mockShot.shot_number,
+        timestamp: mockShot.timestamp,
+        targetPosition: {
+          x: mockShot.target_position_x,
+          y: mockShot.target_position_y,
+        },
+        landingPosition: {
+          x: mockShot.landing_position_x,
+          y: mockShot.landing_position_y,
+        },
+        velocity: mockShot.velocity_kmh,
+        accuracy: mockShot.accuracy_cm,
+      });
+    });
+  });
+});

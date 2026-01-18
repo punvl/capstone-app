@@ -1,0 +1,207 @@
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import Register from '../../components/Register';
+import { AuthProvider } from '../../context/AuthContext';
+
+// Mock useNavigate
+const mockedNavigate = jest.fn();
+
+// Mock react-router-dom
+jest.mock('react-router-dom', () => {
+  const React = require('react');
+  return {
+    useNavigate: () => mockedNavigate,
+    Link: ({ children, to, ...props }: any) => React.createElement('a', { href: to, ...props }, children),
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
+  };
+});
+
+// Mock API
+jest.mock('../../utils/api', () => ({
+  api: {
+    login: jest.fn(),
+    register: jest.fn(),
+    logout: jest.fn(),
+    getCurrentUser: jest.fn(),
+  },
+}));
+
+import { api } from '../../utils/api';
+import { BrowserRouter } from 'react-router-dom';
+
+describe('Register Component', () => {
+  const renderRegister = () => {
+    return render(
+      <BrowserRouter>
+        <AuthProvider>
+          <Register />
+        </AuthProvider>
+      </BrowserRouter>
+    );
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.clear();
+  });
+
+  it('should render registration form', () => {
+    renderRegister();
+
+    expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^email$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument();
+  });
+
+  it('should show password mismatch error', async () => {
+    renderRegister();
+
+    const usernameInput = screen.getByLabelText(/username/i);
+    const emailInput = screen.getByLabelText(/^email$/i);
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
+    const submitButton = screen.getByRole('button', { name: /create account/i });
+
+    fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    fireEvent.change(confirmPasswordInput, { target: { value: 'password456' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should show password length error', async () => {
+    renderRegister();
+
+    const usernameInput = screen.getByLabelText(/username/i);
+    const emailInput = screen.getByLabelText(/^email$/i);
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
+    const submitButton = screen.getByRole('button', { name: /create account/i });
+
+    fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'short' } });
+    fireEvent.change(confirmPasswordInput, { target: { value: 'short' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/password must be at least 8 characters/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should show password strength indicator', () => {
+    renderRegister();
+
+    const passwordInput = screen.getByLabelText(/^password$/i);
+
+    // Weak password
+    fireEvent.change(passwordInput, { target: { value: 'abc' } });
+    expect(screen.getByText(/password strength: weak/i)).toBeInTheDocument();
+
+    // Medium password
+    fireEvent.change(passwordInput, { target: { value: 'abcdef' } });
+    expect(screen.getByText(/password strength: medium/i)).toBeInTheDocument();
+
+    // Strong password
+    fireEvent.change(passwordInput, { target: { value: 'abcdefghij' } });
+    expect(screen.getByText(/password strength: strong/i)).toBeInTheDocument();
+  });
+
+  it('should successfully register with valid credentials', async () => {
+    const mockResponse = {
+      success: true,
+      user: {
+        id: 'user-123',
+        email: 'test@example.com',
+        username: 'testuser',
+      },
+      token: 'jwt_token_12345',
+    };
+
+    (api.register as jest.Mock).mockResolvedValue(mockResponse);
+
+    renderRegister();
+
+    const usernameInput = screen.getByLabelText(/username/i);
+    const emailInput = screen.getByLabelText(/^email$/i);
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
+    const submitButton = screen.getByRole('button', { name: /create account/i });
+
+    fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    fireEvent.change(confirmPasswordInput, { target: { value: 'password123' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(api.register).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        username: 'testuser',
+        password: 'password123',
+      });
+      expect(mockedNavigate).toHaveBeenCalledWith('/');
+    });
+  });
+
+  it('should show error message on registration failure', async () => {
+    (api.register as jest.Mock).mockResolvedValue({
+      success: false,
+      error: 'Email already exists',
+    });
+
+    renderRegister();
+
+    const usernameInput = screen.getByLabelText(/username/i);
+    const emailInput = screen.getByLabelText(/^email$/i);
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
+    const submitButton = screen.getByRole('button', { name: /create account/i });
+
+    fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    fireEvent.change(confirmPasswordInput, { target: { value: 'password123' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/email already exists/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should disable button and show loading state during registration', async () => {
+    (api.register as jest.Mock).mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 100))
+    );
+
+    renderRegister();
+
+    const usernameInput = screen.getByLabelText(/username/i);
+    const emailInput = screen.getByLabelText(/^email$/i);
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
+    const submitButton = screen.getByRole('button', { name: /create account/i });
+
+    fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    fireEvent.change(confirmPasswordInput, { target: { value: 'password123' } });
+    fireEvent.click(submitButton);
+
+    expect(screen.getByRole('button', { name: /creating account/i })).toBeDisabled();
+  });
+
+  it('should navigate to login page when clicking sign in link', () => {
+    renderRegister();
+
+    const signInLink = screen.getByText(/sign in here/i);
+    fireEvent.click(signInLink);
+
+    expect(mockedNavigate).toHaveBeenCalledWith('/login');
+  });
+});

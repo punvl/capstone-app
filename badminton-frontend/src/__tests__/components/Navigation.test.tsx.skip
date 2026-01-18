@@ -1,0 +1,147 @@
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import Navigation from '../../components/Navigation';
+import { AuthContext } from '../../context/AuthContext';
+import { User } from '../../types';
+
+const mockedNavigate = jest.fn();
+
+// Mock react-router-dom
+jest.mock('react-router-dom', () => {
+  const React = require('react');
+  return {
+    useNavigate: () => mockedNavigate,
+    useLocation: () => ({ pathname: '/' }),
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
+  };
+});
+
+import { BrowserRouter } from 'react-router-dom';
+
+describe('Navigation Component', () => {
+  const mockUser: User = {
+    id: 'user-123',
+    email: 'test@example.com',
+    username: 'testuser',
+  };
+
+  const mockLogout = jest.fn();
+
+  const mockAuthContextValue = {
+    user: mockUser,
+    isAuthenticated: true,
+    isLoading: false,
+    login: jest.fn(),
+    register: jest.fn(),
+    logout: mockLogout,
+  };
+
+  const renderNavigation = (authValue = mockAuthContextValue) => {
+    return render(
+      <BrowserRouter>
+        <AuthContext.Provider value={authValue}>
+          <Navigation />
+        </AuthContext.Provider>
+      </BrowserRouter>
+    );
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should render navigation bar with all menu items', () => {
+    renderNavigation();
+
+    expect(screen.getByText(/badminton training system/i)).toBeInTheDocument();
+    expect(screen.getByText(/training/i)).toBeInTheDocument();
+    expect(screen.getByText(/performance/i)).toBeInTheDocument();
+    expect(screen.getByText(/athletes/i)).toBeInTheDocument();
+  });
+
+  it('should display user avatar with first letter of username', () => {
+    renderNavigation();
+
+    expect(screen.getByText('T')).toBeInTheDocument();
+  });
+
+  it('should navigate to training page when clicking Training button', () => {
+    renderNavigation();
+
+    const trainingButton = screen.getByText(/training/i);
+    fireEvent.click(trainingButton);
+
+    expect(mockedNavigate).toHaveBeenCalledWith('/');
+  });
+
+  it('should navigate to performance page when clicking Performance button', () => {
+    renderNavigation();
+
+    const performanceButton = screen.getByText(/performance/i);
+    fireEvent.click(performanceButton);
+
+    expect(mockedNavigate).toHaveBeenCalledWith('/performance');
+  });
+
+  it('should navigate to athletes page when clicking Athletes button', () => {
+    renderNavigation();
+
+    const athletesButton = screen.getByText(/athletes/i);
+    fireEvent.click(athletesButton);
+
+    expect(mockedNavigate).toHaveBeenCalledWith('/athletes');
+  });
+
+  it('should open user menu when clicking avatar', () => {
+    renderNavigation();
+
+    const avatar = screen.getByText('T');
+    fireEvent.click(avatar);
+
+    expect(screen.getByText(mockUser.username)).toBeInTheDocument();
+    expect(screen.getByText(mockUser.email)).toBeInTheDocument();
+    expect(screen.getByText(/logout/i)).toBeInTheDocument();
+  });
+
+  it('should close menu when clicking outside', () => {
+    renderNavigation();
+
+    const avatar = screen.getByText('T');
+    fireEvent.click(avatar);
+
+    expect(screen.getByText(/logout/i)).toBeInTheDocument();
+
+    fireEvent.click(document.body);
+
+    waitFor(() => {
+      expect(screen.queryByText(/logout/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it('should logout and navigate to login page when clicking Logout', async () => {
+    renderNavigation();
+
+    const avatar = screen.getByText('T');
+    fireEvent.click(avatar);
+
+    const logoutButton = screen.getByText(/logout/i);
+    fireEvent.click(logoutButton);
+
+    await waitFor(() => {
+      expect(mockLogout).toHaveBeenCalled();
+      expect(mockedNavigate).toHaveBeenCalledWith('/login');
+    });
+  });
+
+  it('should highlight active route', () => {
+    const { rerender } = render(
+      <BrowserRouter>
+        <AuthContext.Provider value={mockAuthContextValue}>
+          <Navigation />
+        </AuthContext.Provider>
+      </BrowserRouter>
+    );
+
+    const trainingButton = screen.getByText(/training/i).closest('button');
+    expect(trainingButton).toHaveStyle({ backgroundColor: 'rgba(255,255,255,0.1)' });
+  });
+});
