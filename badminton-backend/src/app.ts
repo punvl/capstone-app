@@ -9,6 +9,7 @@ import { errorHandler } from './middleware/error.middleware';
 import authRoutes from './routes/auth.routes';
 import athleteRoutes from './routes/athlete.routes';
 import sessionRoutes from './routes/session.routes';
+import templateRoutes from './routes/template.routes';
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/athletes', athleteRoutes);
 app.use('/api/sessions', sessionRoutes);
+app.use('/api/templates', templateRoutes);
 
 // 404 handler
 app.use((req, res) => {

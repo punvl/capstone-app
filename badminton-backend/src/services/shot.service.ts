@@ -17,6 +17,8 @@ interface CreateShotData {
   detectionConfidence?: number;
   wasSuccessful: boolean;
   courtZone: CourtZone;
+  inBox?: boolean; // Was landing inside target box?
+  targetPositionIndex?: number; // Which position in cycle (0, 1, 2...)
 }
 
 class ShotService {
@@ -31,7 +33,7 @@ class ShotService {
 
   async createShot(data: CreateShotData) {
     const shot = this.shotRepository.create({
-      session: { id: data.sessionId } as any,
+      session: { id: data.sessionId } as { id: string },
       shot_number: data.shotNumber,
       timestamp: data.timestamp,
       landing_position_x: data.landingPositionX,
@@ -44,6 +46,8 @@ class ShotService {
       detection_confidence: data.detectionConfidence,
       was_successful: data.wasSuccessful,
       court_zone: data.courtZone,
+      in_box: data.inBox,
+      target_position_index: data.targetPositionIndex,
     });
 
     return await this.shotRepository.save(shot);

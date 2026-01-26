@@ -26,6 +26,7 @@ describe('SessionService', () => {
         startTime: new Date(),
         status: 'active' as const,
         targetZone: 'front_court',
+        templateId: 'template-001',
       };
 
       const mockSession = {
@@ -35,6 +36,7 @@ describe('SessionService', () => {
         start_time: sessionData.startTime,
         status: 'active',
         target_zone: 'front_court',
+        template_id: 'template-001',
       };
 
       mockSessionRepository.create.mockReturnValue(mockSession as unknown as TrainingSession);
@@ -48,6 +50,7 @@ describe('SessionService', () => {
         start_time: sessionData.startTime,
         status: 'active',
         target_zone: 'front_court',
+        template_id: 'template-001',
       });
       expect(mockSessionRepository.save).toHaveBeenCalled();
       expect(result.id).toBe('session-123');

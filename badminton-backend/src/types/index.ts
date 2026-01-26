@@ -35,3 +35,18 @@ export type SkillLevel = 'beginner' | 'intermediate' | 'advanced' | 'professiona
 export type DominantHand = 'left' | 'right';
 export type CourtZone = 'front_left' | 'front_right' | 'back_left' | 'back_right' | 'unknown';
 
+// Target Templates Types (Half-court coordinates in cm: 610 wide × 670 deep)
+export interface TargetPosition {
+  positionIndex: number;
+  box: { x1: number; y1: number; x2: number; y2: number }; // Target box bounds in cm
+  dot: { x: number; y: number }; // Ideal landing point in cm
+  label?: string;
+}
+
+export interface TargetTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  positions: TargetPosition[];
+}
+

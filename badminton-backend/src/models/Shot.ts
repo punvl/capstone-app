@@ -50,6 +50,12 @@ export class Shot {
   @Column({ type: 'decimal', precision: 4, scale: 3, nullable: true })
   detection_confidence?: number;
 
+  @Column({ type: 'boolean', nullable: true })
+  in_box?: boolean;  // Was landing inside target box?
+
+  @Column({ type: 'integer', nullable: true })
+  target_position_index?: number;  // Which position in cycle (0, 1, 2...)
+
   @CreateDateColumn()
   created_at!: Date;
 }

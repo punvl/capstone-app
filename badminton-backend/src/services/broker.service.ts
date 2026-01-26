@@ -1,14 +1,15 @@
-import amqp from 'amqplib';
+import amqp, { ChannelModel, Channel, ConsumeMessage } from 'amqplib';
 import { BROKER_CONFIG } from '../config/broker';
 import { ShotDataFromCV, SessionStartEvent, SessionStopEvent } from '../types';
 import { shotService } from './shot.service';
 import { sessionService } from './session.service';
+import { templateService } from './template.service';
 import { socketHandler } from '../websocket/socket.handler';
-import { calculateAccuracy, determineCourtZone, calculateAccuracyPercent } from '../utils/court.utils';
+import { calculateAccuracy, determineCourtZone, calculateAccuracyPercent, isPointInBox } from '../utils/court.utils';
 
 class BrokerService {
-  private connection: amqp.Connection | null = null;
-  private channel: amqp.Channel | null = null;
+  private connection: ChannelModel | null = null;
+  private channel: Channel | null = null;
 
   // OPTIMIZATION: Debounce stats broadcasts to reduce WebSocket overhead
   private pendingStatsBroadcasts: Map<string, { timeout: NodeJS.Timeout; sessionId: string }> = new Map();
@@ -84,7 +85,7 @@ class BrokerService {
 
     this.channel.consume(
       BROKER_CONFIG.queues.shotData,
-      async (msg: amqp.ConsumeMessage | null) => {
+      async (msg: ConsumeMessage | null) => {
         if (msg) {
           try {
             const shotData: ShotDataFromCV = JSON.parse(msg.content.toString());
@@ -104,22 +105,52 @@ class BrokerService {
   }
 
   private async processShotData(shotData: ShotDataFromCV) {
-    const { sessionId, shotNumber, timestamp, targetPosition, landingPosition, velocity, detectionConfidence } =
-      shotData;
+    const { sessionId, shotNumber, timestamp, landingPosition, velocity, detectionConfidence } = shotData;
 
-    // Calculate accuracy
-    const accuracyCm = calculateAccuracy(targetPosition, landingPosition);
+    // Get session to retrieve template_id
+    const session = await sessionService.getSessionById(sessionId, []);
+    const templateId = session.template_id;
+
+    // Get target position from template (cycling through positions)
+    let targetPosition = { x: 0, y: 0 };
+    let inBox: boolean | undefined;
+    let targetPositionIndex: number | undefined;
+
+    if (templateId) {
+      const templateTarget = templateService.getTargetForShot(templateId, shotNumber);
+      if (templateTarget) {
+        // Use template's dot as target position (coordinates in cm)
+        // Convert cm to meters for accuracy calculation (divide by 100)
+        targetPosition = {
+          x: templateTarget.dot.x / 100,
+          y: templateTarget.dot.y / 100,
+        };
+        targetPositionIndex = templateTarget.positionIndex;
+
+        // Check if landing is in box (landing position from CV is in cm)
+        inBox = isPointInBox(landingPosition, templateTarget.box);
+      }
+    }
+
+    // Convert landing position from cm to meters for accuracy calculation
+    const landingInMeters = {
+      x: landingPosition.x / 100,
+      y: landingPosition.y / 100,
+    };
+
+    // Calculate accuracy (in cm, using meter positions)
+    const accuracyCm = calculateAccuracy(targetPosition, landingInMeters);
     const accuracyPercent = calculateAccuracyPercent(accuracyCm);
-    const courtZone = determineCourtZone(landingPosition);
+    const courtZone = determineCourtZone(landingInMeters);
     const wasSuccessful = accuracyCm < 30;
 
-    // Save shot to database
+    // Save shot to database (store positions in meters for consistency)
     const shot = await shotService.createShot({
       sessionId,
       shotNumber,
       timestamp: new Date(timestamp),
-      landingPositionX: landingPosition.x,
-      landingPositionY: landingPosition.y,
+      landingPositionX: landingInMeters.x,
+      landingPositionY: landingInMeters.y,
       targetPositionX: targetPosition.x,
       targetPositionY: targetPosition.y,
       accuracyCm,
@@ -128,13 +159,15 @@ class BrokerService {
       detectionConfidence,
       wasSuccessful,
       courtZone,
+      inBox,
+      targetPositionIndex,
     });
 
     // OPTIMIZATION 1: Incremental stats update (O(1) vs O(n))
     const updatedSession = await sessionService.incrementalUpdateStats(
       sessionId,
       accuracyPercent,
-      velocity,
+      velocity ?? 0,
       wasSuccessful
     );
 

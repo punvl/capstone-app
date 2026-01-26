@@ -38,3 +38,19 @@ export const calculateAccuracyPercent = (accuracyCm: number): number => {
   return Math.max(0, 100 - (accuracyCm / 2));
 };
 
+/**
+ * Check if a point is inside a rectangular box
+ * All coordinates in cm (half-court: 610 wide × 670 deep)
+ */
+export const isPointInBox = (
+  point: { x: number; y: number },
+  box: { x1: number; y1: number; x2: number; y2: number }
+): boolean => {
+  const minX = Math.min(box.x1, box.x2);
+  const maxX = Math.max(box.x1, box.x2);
+  const minY = Math.min(box.y1, box.y2);
+  const maxY = Math.max(box.y1, box.y2);
+
+  return point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY;
+};
+

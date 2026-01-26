@@ -2,16 +2,27 @@ import { Response } from 'express';
 import { sessionService } from '../services/session.service';
 import { brokerService } from '../services/broker.service';
 import { socketHandler } from '../websocket/socket.handler';
+import { templateService } from '../services/template.service';
 import { AuthRequest } from '../types';
 
 export class SessionController {
   async startSession(req: AuthRequest, res: Response) {
     try {
-      const { athleteId, targetZone } = req.body;
+      const { athleteId, targetZone, templateId } = req.body;
       const coachId = req.user!.id;
 
       if (!athleteId) {
         return res.status(400).json({ error: 'athleteId is required' });
+      }
+
+      if (!templateId) {
+        return res.status(400).json({ error: 'templateId is required' });
+      }
+
+      // Validate template exists
+      const template = templateService.getTemplateById(templateId);
+      if (!template) {
+        return res.status(400).json({ error: 'Invalid templateId - template not found' });
       }
 
       const session = await sessionService.createSession({
@@ -20,6 +31,7 @@ export class SessionController {
         startTime: new Date(),
         status: 'active',
         targetZone,
+        templateId,
       });
 
       // Send signal to CV component via broker
@@ -34,8 +46,9 @@ export class SessionController {
         success: true,
         session,
       });
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: message });
     }
   }
 

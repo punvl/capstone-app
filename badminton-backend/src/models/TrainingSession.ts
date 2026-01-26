@@ -42,6 +42,9 @@ export class TrainingSession {
   @Column({ nullable: true })
   target_zone?: string;
 
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  template_id?: string;  // References preset template ID
+
   @Column({ type: 'text', nullable: true })
   session_notes?: string;
 

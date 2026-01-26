@@ -96,9 +96,10 @@ capstone/
 - User/Coach account management
 - Athlete CRUD operations
 - Training session lifecycle (start/stop/track)
+- **Target Templates** - Preset target patterns with cycling positions (half-court: 610cm × 670cm)
 - Real-time shot data tracking via WebSocket
 - SVG-based court visualization (13.4m × 6.1m standard court)
-- Shot accuracy calculation and color-coding
+- Shot accuracy calculation and color-coding (with in-box detection)
 - Performance analytics dashboard
 - Session history and detailed session views
 - RabbitMQ integration for external CV component
@@ -127,8 +128,8 @@ Frontend (React) ←→ Backend API (Express.js) ←→ PostgreSQL
 ### Database Schema
 - **users** - Coach accounts (id, email, password_hash, username)
 - **athletes** - Athlete profiles (id, name, dob, gender, skill_level, dominant_hand, etc.)
-- **training_sessions** - Session records (id, athlete_id, coach_id, start/end times, stats)
-- **shots** - Individual shots (id, session_id, shot_number, positions, accuracy, velocity)
+- **training_sessions** - Session records (id, athlete_id, coach_id, template_id, start/end times, stats)
+- **shots** - Individual shots (id, session_id, shot_number, positions, accuracy, velocity, in_box, target_position_index)
 - **rallies** - Rally sequences (id, session_id, start/end times)
 - **rally_events** - Rally event details (id, rally_id, event_type, timestamp)
 
@@ -148,10 +149,14 @@ Frontend (React) ←→ Backend API (Express.js) ←→ PostgreSQL
 - `DELETE /api/athletes/:id` - Delete athlete
 
 ### Training Sessions
-- `POST /api/sessions/start` - Start session (triggers CV via RabbitMQ)
+- `POST /api/sessions/start` - Start session (requires templateId, triggers CV via RabbitMQ)
 - `POST /api/sessions/:id/stop` - Stop session
 - `GET /api/sessions` - List sessions with pagination
 - `GET /api/sessions/:id` - Get session with all shots
+
+### Templates
+- `GET /api/templates` - List all preset templates (public, no auth)
+- `GET /api/templates/:id` - Get specific template by ID (public, no auth)
 
 ## Message Broker Events
 

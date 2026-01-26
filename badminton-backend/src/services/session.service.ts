@@ -9,6 +9,7 @@ interface CreateSessionData {
   startTime: Date;
   status: SessionStatus;
   targetZone?: string;
+  templateId: string; // Required - references preset template ID
 }
 
 interface StopSessionData {
@@ -51,6 +52,7 @@ class SessionService {
       start_time: data.startTime,
       status: data.status,
       target_zone: data.targetZone,
+      template_id: data.templateId,
     });
 
     return await this.sessionRepository.save(session);
