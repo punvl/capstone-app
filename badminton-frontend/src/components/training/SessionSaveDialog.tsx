@@ -12,10 +12,11 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Save } from '@mui/icons-material';
+import { TrainingSession } from '../../types';
 
 interface SessionSaveDialogProps {
   open: boolean;
-  session: any;
+  session: TrainingSession | null;
   athleteName?: string;
   fetchingLatestData: boolean;
   onSave: (notes: string, rating: number | null) => Promise<void>;
@@ -83,7 +84,7 @@ const SessionSaveDialog: React.FC<SessionSaveDialogProps> = ({
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Save />
-          Training Session Completed
+          Session Saved - Add Notes (Optional)
           {fetchingLatestData && <CircularProgress size={20} sx={{ ml: 'auto' }} />}
         </Box>
       </DialogTitle>
@@ -162,10 +163,10 @@ const SessionSaveDialog: React.FC<SessionSaveDialogProps> = ({
 
       <DialogActions>
         <Button onClick={onClose} disabled={saving}>
-          Cancel
+          Skip
         </Button>
         <Button onClick={handleSave} variant="contained" startIcon={<Save />} disabled={saving}>
-          {saving ? 'Saving...' : 'Save Session'}
+          {saving ? 'Saving...' : 'Save Notes'}
         </Button>
       </DialogActions>
     </Dialog>

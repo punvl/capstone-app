@@ -149,16 +149,21 @@ const TrainingControl: React.FC = () => {
           throw new Error('No session to save');
         }
 
-        const { api } = await import('../utils/api');
+        // Session is already stopped in backend by stopTraining()
+        // Only update notes/rating if provided
+        if (notes || rating) {
+          const { api } = await import('../utils/api');
+          await api.stopSession(sessionToSave.id, {
+            sessionNotes: notes,
+            sessionRating: rating || undefined,
+          });
+        }
 
-        await api.stopSession(sessionToSave.id, {
-          sessionNotes: notes,
-          sessionRating: rating || undefined,
-        });
-
-        // Cleanup
+        // Cleanup local state
         setSaveDialogOpen(false);
         setSessionToSave(null);
+
+        // Clear context state (session already stopped, just cleanup)
         await saveSession();
 
         // Navigate to performance page
@@ -175,7 +180,13 @@ const TrainingControl: React.FC = () => {
     setSaveDialogOpen(false);
     setSessionToSave(null);
     setFetchingLatestData(false);
-  }, []);
+
+    // Clear context state (session already stopped in backend by stopTraining)
+    saveSession();
+
+    // Navigate to performance page
+    setTimeout(() => navigate('/performance'), 500);
+  }, [saveSession, navigate]);
 
   const handleNavigateToAthletes = useCallback(() => {
     navigate('/athletes');

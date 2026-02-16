@@ -214,6 +214,14 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
   const stopTraining = async () => {
     if (!currentSession) return;
 
+    try {
+      // Stop session in backend IMMEDIATELY (status -> completed)
+      await api.stopSession(currentSession.id, {});
+    } catch (error) {
+      console.error('Failed to stop session in backend:', error);
+      // Continue with local cleanup even if backend fails
+    }
+
     setIsTrainingActive(false);
 
     // Leave socket room
