@@ -19,13 +19,14 @@ import {
 } from '@mui/material';
 import { ArrowBack, SportsTennis, ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { api } from '../utils/api';
-import { TrainingSession } from '../types';
+import { TrainingSession, TargetTemplate } from '../types';
 import CourtVisualization from './CourtVisualization';
 
 const SessionDetail: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const [session, setSession] = useState<TrainingSession | null>(null);
+  const [template, setTemplate] = useState<TargetTemplate | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedShotIndex, setSelectedShotIndex] = useState(0);
 
@@ -42,6 +43,13 @@ const SessionDetail: React.FC = () => {
       const result = await api.getSession(sessionId!);
       if (result.success) {
         setSession(result.session);
+        // Fetch template info if session uses a template
+        if (result.session.template_id) {
+          const templateResult = await api.getTemplate(result.session.template_id);
+          if (templateResult.success) {
+            setTemplate(templateResult.template);
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to load session:', error);
@@ -242,12 +250,31 @@ const SessionDetail: React.FC = () => {
                 </Typography>
               </Box>
 
+              {/* Coordinate System Indicator */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <Chip
+                  label={session.template_id ? 'Half-Court (cm)' : 'Full-Court (m)'}
+                  size="small"
+                  color={session.template_id ? 'primary' : 'default'}
+                  variant="outlined"
+                />
+                {template && (
+                  <Chip
+                    label={`Template: ${template.name}`}
+                    size="small"
+                    color="secondary"
+                    variant="outlined"
+                  />
+                )}
+              </Box>
+
               <CourtVisualization
                 mode="review"
                 shots={[session.shots[selectedShotIndex]]}
                 width={Math.min(600, window.innerWidth - 100)}
                 height={500}
                 showLabels={true}
+                halfCourt={!!session.template_id}
               />
 
               {/* Navigation Buttons */}
@@ -339,10 +366,16 @@ const SessionDetail: React.FC = () => {
                         </TableCell>
                         <TableCell>{new Date(shot.timestamp).toLocaleTimeString()}</TableCell>
                         <TableCell>
-                          ({Number(shot.target_position_x).toFixed(2)}m, {Number(shot.target_position_y).toFixed(2)}m)
+                          {session.template_id
+                            ? `(${Number(shot.target_position_x).toFixed(0)}cm, ${Number(shot.target_position_y).toFixed(0)}cm)`
+                            : `(${Number(shot.target_position_x).toFixed(2)}m, ${Number(shot.target_position_y).toFixed(2)}m)`
+                          }
                         </TableCell>
                         <TableCell>
-                          ({Number(shot.landing_position_x).toFixed(2)}m, {Number(shot.landing_position_y).toFixed(2)}m)
+                          {session.template_id
+                            ? `(${Number(shot.landing_position_x).toFixed(0)}cm, ${Number(shot.landing_position_y).toFixed(0)}cm)`
+                            : `(${Number(shot.landing_position_x).toFixed(2)}m, ${Number(shot.landing_position_y).toFixed(2)}m)`
+                          }
                         </TableCell>
                         <TableCell align="center">
                           <Chip

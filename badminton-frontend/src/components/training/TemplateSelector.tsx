@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   Card,
   CardContent,
@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { GridOn } from '@mui/icons-material';
 import { TargetTemplate } from '../../types';
+import CourtVisualization from '../CourtVisualization';
 
 interface TemplateSelectorProps {
   templates: TargetTemplate[];
@@ -19,96 +20,6 @@ interface TemplateSelectorProps {
   isTrainingActive: boolean;
   onTemplateChange: (templateId: string) => void;
 }
-
-// Half-court dimensions in cm
-const COURT_WIDTH = 610;
-const COURT_HEIGHT = 670;
-
-/**
- * Mini-court preview showing all target positions
- */
-const CourtPreview: React.FC<{ template: TargetTemplate }> = React.memo(({ template }) => {
-  // Court lines for half-court visualization
-  const courtLines = useMemo(() => (
-    <>
-      {/* Court boundary */}
-      <rect
-        x={0}
-        y={0}
-        width={COURT_WIDTH}
-        height={COURT_HEIGHT}
-        fill="#2d5a27"
-        stroke="#fff"
-        strokeWidth={4}
-      />
-      {/* Net line (top) */}
-      <line x1={0} y1={0} x2={COURT_WIDTH} y2={0} stroke="#fff" strokeWidth={6} />
-      {/* Service line */}
-      <line x1={0} y1={198} x2={COURT_WIDTH} y2={198} stroke="#fff" strokeWidth={2} />
-      {/* Center line */}
-      <line x1={COURT_WIDTH / 2} y1={0} x2={COURT_WIDTH / 2} y2={198} stroke="#fff" strokeWidth={2} />
-      {/* Back doubles service line */}
-      <line x1={0} y1={76} x2={COURT_WIDTH} y2={76} stroke="#fff" strokeWidth={2} />
-    </>
-  ), []);
-
-  return (
-    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-      <svg
-        viewBox={`0 0 ${COURT_WIDTH} ${COURT_HEIGHT}`}
-        width="100%"
-        height="200"
-        style={{ maxWidth: '300px', border: '2px solid #333', borderRadius: '4px' }}
-      >
-        {courtLines}
-
-        {/* Render all target positions */}
-        {template.positions.map((pos) => (
-          <g key={pos.positionIndex}>
-            {/* Target box - semi-transparent */}
-            <rect
-              x={pos.box.x1}
-              y={pos.box.y1}
-              width={pos.box.x2 - pos.box.x1}
-              height={pos.box.y2 - pos.box.y1}
-              fill="rgba(255, 235, 59, 0.4)"
-              stroke="#ffc107"
-              strokeWidth={3}
-            />
-            {/* Target dot */}
-            <circle
-              cx={pos.dot.x}
-              cy={pos.dot.y}
-              r={12}
-              fill="#f44336"
-              stroke="#fff"
-              strokeWidth={2}
-            />
-            {/* Position label */}
-            <text
-              x={(pos.box.x1 + pos.box.x2) / 2}
-              y={(pos.box.y1 + pos.box.y2) / 2}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill="#000"
-              fontSize="28"
-              fontWeight="bold"
-            >
-              {pos.positionIndex + 1}
-            </text>
-          </g>
-        ))}
-
-        {/* Net label */}
-        <text x={COURT_WIDTH / 2} y={20} textAnchor="middle" fill="#fff" fontSize="24" fontWeight="bold">
-          NET
-        </text>
-      </svg>
-    </Box>
-  );
-});
-
-CourtPreview.displayName = 'CourtPreview';
 
 /**
  * Template Selector Component
@@ -164,7 +75,15 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 {selectedTemplate.positions.length} target positions • Shots cycle: 1→2→3→1→2→3...
               </Typography>
             </Alert>
-            <CourtPreview template={selectedTemplate} />
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+              <CourtVisualization
+                mode="preview"
+                width={300}
+                height={200}
+                halfCourt={true}
+                templatePositions={selectedTemplate.positions}
+              />
+            </Box>
           </>
         )}
 

@@ -2,8 +2,15 @@ import React, { useRef, useMemo, useCallback } from 'react';
 import { Box, Typography, Chip } from '@mui/material';
 import { Shot, ShotData } from '../types';
 
+// Template position for preview mode
+interface TemplatePosition {
+  positionIndex: number;
+  box: { x1: number; y1: number; x2: number; y2: number };
+  dot: { x: number; y: number };
+}
+
 interface CourtVisualizationProps {
-  mode: 'live' | 'review';
+  mode: 'live' | 'review' | 'preview';
   currentShot?: ShotData;
   shots?: Shot[];
   width?: number;
@@ -13,6 +20,7 @@ interface CourtVisualizationProps {
   targetDot?: { x: number; y: number };
   inBox?: boolean;
   halfCourt?: boolean; // When true, render half-court in cm (610 × 670)
+  templatePositions?: TemplatePosition[]; // For preview mode: all positions to display
 }
 
 // Standard badminton court dimensions (meters)
@@ -45,6 +53,7 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
   targetDot,
   inBox,
   halfCourt = false,
+  templatePositions,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -259,6 +268,47 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
     );
   }, [mode, currentShot, toSvgX, toSvgY, getShotColor, targetBox, targetDot, halfCourt]);
 
+  // OPTIMIZATION: Memoize template positions rendering for preview mode
+  const renderedTemplatePositions = useMemo(() => {
+    if (mode !== 'preview' || !templatePositions) return null;
+
+    return templatePositions.map((pos) => (
+      <g key={pos.positionIndex}>
+        {/* Target box - semi-transparent yellow */}
+        <rect
+          x={toSvgX(pos.box.x1)}
+          y={toSvgY(pos.box.y1)}
+          width={Math.abs(toSvgX(pos.box.x2) - toSvgX(pos.box.x1))}
+          height={Math.abs(toSvgY(pos.box.y2) - toSvgY(pos.box.y1))}
+          fill="rgba(255, 235, 59, 0.4)"
+          stroke="#ffc107"
+          strokeWidth={3}
+        />
+        {/* Target dot */}
+        <circle
+          cx={toSvgX(pos.dot.x)}
+          cy={toSvgY(pos.dot.y)}
+          r={8}
+          fill="#f44336"
+          stroke="#fff"
+          strokeWidth={2}
+        />
+        {/* Position label in center of box */}
+        <text
+          x={(toSvgX(pos.box.x1) + toSvgX(pos.box.x2)) / 2}
+          y={(toSvgY(pos.box.y1) + toSvgY(pos.box.y2)) / 2}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill="#000"
+          fontSize="16"
+          fontWeight="bold"
+        >
+          {pos.positionIndex + 1}
+        </text>
+      </g>
+    ));
+  }, [mode, templatePositions, toSvgX, toSvgY]);
+
   return (
     <Box sx={{ position: 'relative' }}>
       <svg
@@ -291,6 +341,9 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
 
         {/* Live mode: Show current shot with animation */}
         {renderedLiveShot}
+
+        {/* Preview mode: Show all template positions */}
+        {renderedTemplatePositions}
       </svg>
 
       {/* Legend */}
@@ -615,6 +668,15 @@ export default React.memo(
         prevProps.width === nextProps.width &&
         prevProps.height === nextProps.height &&
         prevProps.halfCourt === nextProps.halfCourt
+      );
+    }
+
+    // For preview mode: re-render if templatePositions or dimensions change
+    if (prevProps.mode === 'preview' && nextProps.mode === 'preview') {
+      return (
+        prevProps.templatePositions === nextProps.templatePositions &&
+        prevProps.width === nextProps.width &&
+        prevProps.height === nextProps.height
       );
     }
 
