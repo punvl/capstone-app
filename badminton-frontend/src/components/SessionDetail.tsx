@@ -378,13 +378,13 @@ const SessionDetail: React.FC = () => {
                         <TableCell>{new Date(shot.timestamp).toLocaleTimeString()}</TableCell>
                         <TableCell>
                           {session.template_id
-                            ? `(${Number(shot.target_position_x).toFixed(0)}cm, ${Number(shot.target_position_y).toFixed(0)}cm)`
+                            ? `(${(Number(shot.target_position_x) * 100).toFixed(0)}cm, ${(Number(shot.target_position_y) * 100).toFixed(0)}cm)`
                             : `(${Number(shot.target_position_x).toFixed(2)}m, ${Number(shot.target_position_y).toFixed(2)}m)`
                           }
                         </TableCell>
                         <TableCell>
                           {session.template_id
-                            ? `(${Number(shot.landing_position_x).toFixed(0)}cm, ${Number(shot.landing_position_y).toFixed(0)}cm)`
+                            ? `(${(Number(shot.landing_position_x) * 100).toFixed(0)}cm, ${(Number(shot.landing_position_y) * 100).toFixed(0)}cm)`
                             : `(${Number(shot.landing_position_x).toFixed(2)}m, ${Number(shot.landing_position_y).toFixed(2)}m)`
                           }
                         </TableCell>
