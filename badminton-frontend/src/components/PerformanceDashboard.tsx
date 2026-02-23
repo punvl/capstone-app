@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -30,35 +30,32 @@ const PerformanceDashboard: React.FC = () => {
   const [selectedAthleteId, setSelectedAthleteId] = useState('');
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
 
-  useEffect(() => {
-    loadAthletes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (athletes.length > 0 && !selectedAthleteId) {
-      setSelectedAthleteId(athletes[0].id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [athletes]);
-
-  useEffect(() => {
-    if (selectedAthleteId) {
-      loadSessions();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedAthleteId]);
-
-  const loadSessions = async () => {
+  const loadSessions = useCallback(async (athleteId: string) => {
     try {
-      const result = await api.getSessions({ athleteId: selectedAthleteId });
+      const result = await api.getSessions({ athleteId });
       if (result.success) {
         setSessions(result.sessions);
       }
     } catch (error) {
       console.error('Failed to load sessions:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadAthletes();
+  }, [loadAthletes]);
+
+  useEffect(() => {
+    if (athletes.length > 0 && !selectedAthleteId) {
+      setSelectedAthleteId(athletes[0].id);
+    }
+  }, [athletes, selectedAthleteId]);
+
+  useEffect(() => {
+    if (selectedAthleteId) {
+      loadSessions(selectedAthleteId);
+    }
+  }, [selectedAthleteId, loadSessions]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

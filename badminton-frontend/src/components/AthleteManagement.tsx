@@ -42,8 +42,7 @@ const AthleteManagement: React.FC = () => {
 
   useEffect(() => {
     loadAthletes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadAthletes]);
 
   const handleOpenDialog = (athlete?: Athlete) => {
     if (athlete) {

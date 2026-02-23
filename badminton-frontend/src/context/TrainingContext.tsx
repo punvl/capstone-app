@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { Athlete, TrainingSession, Shot, ShotData, TargetTemplate } from '../types';
 import { api } from '../utils/api';
@@ -115,7 +115,7 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
     };
   }, [socket, currentSession]);
 
-  const loadAthletes = async () => {
+  const loadAthletes = useCallback(async () => {
     try {
       const result = await api.getAthletes();
       if (result.success) {
@@ -124,9 +124,9 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
     } catch (error) {
       console.error('Failed to load athletes:', error);
     }
-  };
+  }, []);
 
-  const createAthlete = async (data: any) => {
+  const createAthlete = useCallback(async (data: any) => {
     try {
       const result = await api.createAthlete(data);
       if (result.success) {
@@ -136,9 +136,9 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
       console.error('Failed to create athlete:', error);
       throw error;
     }
-  };
+  }, [loadAthletes]);
 
-  const updateAthlete = async (id: string, data: any) => {
+  const updateAthlete = useCallback(async (id: string, data: any) => {
     try {
       const result = await api.updateAthlete(id, data);
       if (result.success) {
@@ -148,9 +148,9 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
       console.error('Failed to update athlete:', error);
       throw error;
     }
-  };
+  }, [loadAthletes]);
 
-  const deleteAthlete = async (id: string) => {
+  const deleteAthlete = useCallback(async (id: string) => {
     try {
       await api.deleteAthlete(id);
       await loadAthletes();
@@ -158,13 +158,13 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
       console.error('Failed to delete athlete:', error);
       throw error;
     }
-  };
+  }, [loadAthletes]);
 
-  const selectAthlete = (athlete: Athlete) => {
+  const selectAthlete = useCallback((athlete: Athlete) => {
     setSelectedAthlete(athlete);
-  };
+  }, []);
 
-  const loadTemplates = async () => {
+  const loadTemplates = useCallback(async () => {
     try {
       const result = await api.getTemplates();
       if (result.success && result.templates) {
@@ -173,14 +173,14 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
     } catch (error) {
       console.error('Failed to load templates:', error);
     }
-  };
+  }, []);
 
-  const selectTemplate = (template: TargetTemplate | null) => {
+  const selectTemplate = useCallback((template: TargetTemplate | null) => {
     setSelectedTemplate(template);
     setCurrentTargetIndex(0);
-  };
+  }, []);
 
-  const startTraining = async () => {
+  const startTraining = useCallback(async () => {
     if (!selectedAthlete) {
       throw new Error('No athlete selected');
     }
@@ -209,9 +209,9 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
       console.error('Failed to start training:', error);
       throw error;
     }
-  };
+  }, [selectedAthlete, selectedTemplate, socket]);
 
-  const stopTraining = async () => {
+  const stopTraining = useCallback(async () => {
     if (!currentSession) return;
 
     try {
@@ -228,9 +228,9 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
     if (socket) {
       socket.emit('leave_session', currentSession.id);
     }
-  };
+  }, [currentSession, socket]);
 
-  const saveSession = async (notes?: string, rating?: number) => {
+  const saveSession = useCallback(async (notes?: string, rating?: number) => {
     if (!currentSession) {
       console.warn('No current session to save');
       // Still clear state even if no currentSession
@@ -253,9 +253,9 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
       console.error('Failed to save session:', error);
       throw error;
     }
-  };
+  }, [currentSession]);
 
-  const value: TrainingContextType = {
+  const value = useMemo<TrainingContextType>(() => ({
     athletes,
     selectedAthlete,
     currentSession,
@@ -274,7 +274,12 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
     startTraining,
     stopTraining,
     saveSession,
-  };
+  }), [
+    athletes, selectedAthlete, currentSession, isTrainingActive, liveCourtData,
+    templates, selectedTemplate, currentTargetIndex,
+    loadAthletes, createAthlete, updateAthlete, deleteAthlete,
+    selectAthlete, loadTemplates, selectTemplate, startTraining, stopTraining, saveSession,
+  ]);
 
   return <TrainingContext.Provider value={value}>{children}</TrainingContext.Provider>;
 };

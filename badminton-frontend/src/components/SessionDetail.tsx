@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -30,17 +30,11 @@ const SessionDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedShotIndex, setSelectedShotIndex] = useState(0);
 
-  useEffect(() => {
-    if (sessionId) {
-      loadSession();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId]);
-
-  const loadSession = async () => {
+  const loadSession = useCallback(async () => {
+    if (!sessionId) return;
     setLoading(true);
     try {
-      const result = await api.getSession(sessionId!);
+      const result = await api.getSession(sessionId);
       if (result.success) {
         setSession(result.session);
         // Fetch template info if session uses a template
@@ -56,7 +50,11 @@ const SessionDetail: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionId]);
+
+  useEffect(() => {
+    loadSession();
+  }, [loadSession]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
