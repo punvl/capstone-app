@@ -27,12 +27,25 @@ class BrokerService {
       // Declare exchange
       await this.channel.assertExchange(BROKER_CONFIG.exchange, 'topic', { durable: true });
 
-      // Declare queue for shot data
+      // Declare queue for shot data (consumed by this backend)
       await this.channel.assertQueue(BROKER_CONFIG.queues.shotData, { durable: true });
       await this.channel.bindQueue(
         BROKER_CONFIG.queues.shotData,
         BROKER_CONFIG.exchange,
         BROKER_CONFIG.routingKeys.shotData
+      );
+
+      // Declare queue for session control (consumed by CV component)
+      await this.channel.assertQueue(BROKER_CONFIG.queues.sessionControl, { durable: true });
+      await this.channel.bindQueue(
+        BROKER_CONFIG.queues.sessionControl,
+        BROKER_CONFIG.exchange,
+        BROKER_CONFIG.routingKeys.sessionStart
+      );
+      await this.channel.bindQueue(
+        BROKER_CONFIG.queues.sessionControl,
+        BROKER_CONFIG.exchange,
+        BROKER_CONFIG.routingKeys.sessionStop
       );
 
       console.log('✅ RabbitMQ connected and configured');
