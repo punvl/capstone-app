@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useTraining } from '../context/TrainingContext';
 import { useNavigate } from 'react-router-dom';
-import { TrainingSession, ShotData, TargetTemplate } from '../types';
+import { TrainingSession, ShotData } from '../types';
 import CourtVisualization from './CourtVisualization';
 import AthleteSelector from './training/AthleteSelector';
 import TrainingControls from './training/TrainingControls';
