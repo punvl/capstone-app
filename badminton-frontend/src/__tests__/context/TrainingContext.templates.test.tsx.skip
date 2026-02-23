@@ -1,0 +1,347 @@
+import { renderHook, waitFor, act } from '@testing-library/react';
+import { TrainingProvider, useTraining } from '../../context/TrainingContext';
+import { ReactNode } from 'react';
+import { TargetTemplate, Athlete } from '../../types';
+
+// Socket.io is mocked globally in setupTests.ts
+
+// Mock API
+jest.mock('../../utils/api', () => ({
+  api: {
+    getAthletes: jest.fn(),
+    getTemplates: jest.fn(),
+    getTemplate: jest.fn(),
+    startSession: jest.fn(),
+    stopSession: jest.fn(),
+  },
+}));
+
+import { api } from '../../utils/api';
+
+// Mock templates
+const mockTemplates: TargetTemplate[] = [
+  {
+    id: 'template-001',
+    name: 'template-001',
+    description: 'first template',
+    positions: [
+      { positionIndex: 0, box: { x1: 46, y1: 594, x2: 122, y2: 670 }, dot: { x: 46, y: 670 } },
+      { positionIndex: 1, box: { x1: 488, y1: 198, x2: 564, y2: 274 }, dot: { x: 526, y: 236 } },
+      { positionIndex: 2, box: { x1: 488, y1: 0, x2: 564, y2: 76 }, dot: { x: 526, y: 38 } },
+    ],
+  },
+  {
+    id: 'template-002',
+    name: 'template-002',
+    description: 'second template',
+    positions: [
+      { positionIndex: 0, box: { x1: 0, y1: 0, x2: 100, y2: 100 }, dot: { x: 50, y: 50 } },
+    ],
+  },
+];
+
+const mockAthlete: Athlete = {
+  id: 'athlete-001',
+  athlete_name: 'Test Athlete',
+  skill_level: 'intermediate',
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
+describe('TrainingContext - Template Selection', () => {
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <TrainingProvider>{children}</TrainingProvider>
+  );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should throw error when useTraining is used outside TrainingProvider', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    expect(() => {
+      renderHook(() => useTraining());
+    }).toThrow('useTraining must be used within TrainingProvider');
+
+    consoleError.mockRestore();
+  });
+
+  it('should initialize with empty templates and no selected template', () => {
+    const { result } = renderHook(() => useTraining(), { wrapper });
+
+    expect(result.current.templates).toEqual([]);
+    expect(result.current.selectedTemplate).toBeNull();
+    expect(result.current.currentTargetIndex).toBe(0);
+  });
+
+  describe('loadTemplates', () => {
+    it('should load templates successfully', async () => {
+      (api.getTemplates as jest.Mock).mockResolvedValue({
+        success: true,
+        templates: mockTemplates,
+      });
+
+      const { result } = renderHook(() => useTraining(), { wrapper });
+
+      await act(async () => {
+        await result.current.loadTemplates();
+      });
+
+      expect(api.getTemplates).toHaveBeenCalled();
+      expect(result.current.templates).toEqual(mockTemplates);
+    });
+
+    it('should handle load templates failure gracefully', async () => {
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      (api.getTemplates as jest.Mock).mockRejectedValue(new Error('Network error'));
+
+      const { result } = renderHook(() => useTraining(), { wrapper });
+
+      await act(async () => {
+        await result.current.loadTemplates();
+      });
+
+      expect(result.current.templates).toEqual([]);
+      consoleError.mockRestore();
+    });
+
+    it('should handle empty templates response', async () => {
+      (api.getTemplates as jest.Mock).mockResolvedValue({
+        success: true,
+        templates: [],
+      });
+
+      const { result } = renderHook(() => useTraining(), { wrapper });
+
+      await act(async () => {
+        await result.current.loadTemplates();
+      });
+
+      expect(result.current.templates).toEqual([]);
+    });
+  });
+
+  describe('selectTemplate', () => {
+    it('should select a template', async () => {
+      (api.getTemplates as jest.Mock).mockResolvedValue({
+        success: true,
+        templates: mockTemplates,
+      });
+
+      const { result } = renderHook(() => useTraining(), { wrapper });
+
+      await act(async () => {
+        await result.current.loadTemplates();
+      });
+
+      act(() => {
+        result.current.selectTemplate(mockTemplates[0]);
+      });
+
+      expect(result.current.selectedTemplate).toEqual(mockTemplates[0]);
+    });
+
+    it('should reset currentTargetIndex when selecting a template', async () => {
+      const { result } = renderHook(() => useTraining(), { wrapper });
+
+      act(() => {
+        result.current.selectTemplate(mockTemplates[0]);
+      });
+
+      expect(result.current.currentTargetIndex).toBe(0);
+    });
+
+    it('should allow deselecting template', () => {
+      const { result } = renderHook(() => useTraining(), { wrapper });
+
+      act(() => {
+        result.current.selectTemplate(mockTemplates[0]);
+      });
+
+      expect(result.current.selectedTemplate).toEqual(mockTemplates[0]);
+
+      act(() => {
+        result.current.selectTemplate(null);
+      });
+
+      expect(result.current.selectedTemplate).toBeNull();
+    });
+
+    it('should allow changing selected template', () => {
+      const { result } = renderHook(() => useTraining(), { wrapper });
+
+      act(() => {
+        result.current.selectTemplate(mockTemplates[0]);
+      });
+
+      expect(result.current.selectedTemplate?.id).toBe('template-001');
+
+      act(() => {
+        result.current.selectTemplate(mockTemplates[1]);
+      });
+
+      expect(result.current.selectedTemplate?.id).toBe('template-002');
+    });
+  });
+
+  describe('startTraining with template', () => {
+    it('should throw error if no template selected', async () => {
+      (api.getAthletes as jest.Mock).mockResolvedValue({
+        success: true,
+        athletes: [mockAthlete],
+      });
+
+      const { result } = renderHook(() => useTraining(), { wrapper });
+
+      await act(async () => {
+        await result.current.loadAthletes();
+      });
+
+      act(() => {
+        result.current.selectAthlete(mockAthlete);
+      });
+
+      await expect(
+        act(async () => {
+          await result.current.startTraining();
+        })
+      ).rejects.toThrow('No template selected');
+    });
+
+    it('should throw error if no athlete selected', async () => {
+      const { result } = renderHook(() => useTraining(), { wrapper });
+
+      act(() => {
+        result.current.selectTemplate(mockTemplates[0]);
+      });
+
+      await expect(
+        act(async () => {
+          await result.current.startTraining();
+        })
+      ).rejects.toThrow('No athlete selected');
+    });
+
+    it('should start training with template and athlete', async () => {
+      const mockSession = {
+        id: 'session-001',
+        athlete_id: mockAthlete.id,
+        template_id: mockTemplates[0].id,
+        status: 'active',
+        start_time: new Date().toISOString(),
+      };
+
+      (api.getAthletes as jest.Mock).mockResolvedValue({
+        success: true,
+        athletes: [mockAthlete],
+      });
+      (api.getTemplates as jest.Mock).mockResolvedValue({
+        success: true,
+        templates: mockTemplates,
+      });
+      (api.startSession as jest.Mock).mockResolvedValue({
+        success: true,
+        session: mockSession,
+      });
+
+      const { result } = renderHook(() => useTraining(), { wrapper });
+
+      await act(async () => {
+        await result.current.loadAthletes();
+        await result.current.loadTemplates();
+      });
+
+      act(() => {
+        result.current.selectAthlete(mockAthlete);
+        result.current.selectTemplate(mockTemplates[0]);
+      });
+
+      await act(async () => {
+        await result.current.startTraining();
+      });
+
+      expect(api.startSession).toHaveBeenCalledWith({
+        athleteId: mockAthlete.id,
+        templateId: mockTemplates[0].id,
+      });
+      expect(result.current.isTrainingActive).toBe(true);
+      expect(result.current.currentSession?.template_id).toBe(mockTemplates[0].id);
+    });
+
+    it('should reset currentTargetIndex when starting training', async () => {
+      const mockSession = {
+        id: 'session-001',
+        athlete_id: mockAthlete.id,
+        template_id: mockTemplates[0].id,
+        status: 'active',
+      };
+
+      (api.getAthletes as jest.Mock).mockResolvedValue({
+        success: true,
+        athletes: [mockAthlete],
+      });
+      (api.startSession as jest.Mock).mockResolvedValue({
+        success: true,
+        session: mockSession,
+      });
+
+      const { result } = renderHook(() => useTraining(), { wrapper });
+
+      await act(async () => {
+        await result.current.loadAthletes();
+      });
+
+      act(() => {
+        result.current.selectAthlete(mockAthlete);
+        result.current.selectTemplate(mockTemplates[0]);
+      });
+
+      await act(async () => {
+        await result.current.startTraining();
+      });
+
+      expect(result.current.currentTargetIndex).toBe(0);
+    });
+  });
+
+  describe('template state persistence', () => {
+    it('should maintain template selection after loading athletes', async () => {
+      (api.getAthletes as jest.Mock).mockResolvedValue({
+        success: true,
+        athletes: [mockAthlete],
+      });
+
+      const { result } = renderHook(() => useTraining(), { wrapper });
+
+      act(() => {
+        result.current.selectTemplate(mockTemplates[0]);
+      });
+
+      await act(async () => {
+        await result.current.loadAthletes();
+      });
+
+      expect(result.current.selectedTemplate).toEqual(mockTemplates[0]);
+    });
+
+    it('should maintain template selection after loading templates', async () => {
+      (api.getTemplates as jest.Mock).mockResolvedValue({
+        success: true,
+        templates: mockTemplates,
+      });
+
+      const { result } = renderHook(() => useTraining(), { wrapper });
+
+      act(() => {
+        result.current.selectTemplate(mockTemplates[0]);
+      });
+
+      await act(async () => {
+        await result.current.loadTemplates();
+      });
+
+      expect(result.current.selectedTemplate).toEqual(mockTemplates[0]);
+    });
+  });
+});

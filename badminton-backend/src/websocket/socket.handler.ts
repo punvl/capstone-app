@@ -5,9 +5,10 @@ class SocketHandler {
   private io: Server | null = null;
 
   initialize(server: HTTPServer) {
+    const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',');
     this.io = new Server(server, {
       cors: {
-        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+        origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins,
         credentials: true,
       },
     });

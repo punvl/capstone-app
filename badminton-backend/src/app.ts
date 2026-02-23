@@ -12,11 +12,13 @@ import sessionRoutes from './routes/session.routes';
 import templateRoutes from './routes/template.routes';
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(helmet());
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',');
 app.use(cors({
-  origin: process.env.FRONTEND_URL || process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins,
   credentials: true,
 }));
 app.use(morgan('dev'));
