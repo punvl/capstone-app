@@ -20,12 +20,61 @@ export const PRESET_TEMPLATES: TargetTemplate[] = [
       {
         positionIndex: 1,
         box: { x1: 488, y1: -198, x2: 564, y2: -274 },
-        dot: { x: 526, y: -236 },
+        dot: { x: 564, y: -236 },
       },
       {
         positionIndex: 2,
         box: { x1: 488, y1: 0, x2: 564, y2: -76 },
-        dot: { x: 526, y: -38 },
+        dot: { x: 564, y: 0 },
+      },
+    ],
+  },
+  {
+    id: 'template-002',
+    name: 'template-002',
+    description: 'second template',
+    positions: [
+      {
+        positionIndex: 0,
+        box: { x1: 488, y1: -594, x2: 564, y2: -670 },
+        dot: { x: 564, y: -670 },
+      },
+      {
+        positionIndex: 1,
+        box: { x1: 46, y1: -243, x2: 66, y2: -400 },
+        dot: { x: 46, y: -321 },
+      },
+      {
+        positionIndex: 2,
+        box: { x1: 46, y1: 0, x2: 122, y2: -76 },
+        dot: { x: 46, y: 0 },
+      },
+    ],
+  },
+  {
+    id: 'template-003',
+    name: 'template-003',
+    description: 'third template',
+    positions: [
+      {
+        positionIndex: 0,
+        box: { x1: 46, y1: -594, x2: 122, y2: -670 },
+        dot: { x: 46, y: -670 },
+      },
+      {
+        positionIndex: 1,
+        box: { x1: 46, y1: 0, x2: 122, y2: -76 },
+        dot: { x: 46, y: 0 },
+      },
+      {
+        positionIndex: 2,
+        box: { x1: 544, y1: -117, x2: 564, y2: -274 },
+        dot: { x: 564, y: -175 },
+      },
+      {
+        positionIndex: 3,
+        box: { x1: 488, y1: 0, x2: 564, y2: -76 },
+        dot: { x: 564, y: 0 },
       },
     ],
   },
