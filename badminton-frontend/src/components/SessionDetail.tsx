@@ -377,13 +377,13 @@ const SessionDetail: React.FC = () => {
               </Typography>
 
               <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 600, mt: 2 }}>
-                <Table stickyHeader size="small">
+                <Table stickyHeader size="small" sx={{ '& .MuiTableCell-root': { px: 1, fontSize: '0.78rem' } }}>
                   <TableHead>
                     <TableRow>
                       <TableCell>Shot #</TableCell>
                       <TableCell>Time</TableCell>
-                      <TableCell>Target (x, y)</TableCell>
-                      <TableCell>Landing (x, y)</TableCell>
+                      <TableCell>Target</TableCell>
+                      <TableCell>Landing</TableCell>
                       <TableCell align="center">Accuracy</TableCell>
                       <TableCell align="center">Velocity</TableCell>
                       <TableCell align="center">Score</TableCell>
