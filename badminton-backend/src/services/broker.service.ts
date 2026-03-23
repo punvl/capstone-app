@@ -155,8 +155,8 @@ class BrokerService {
     const accuracyCm = calculateAccuracy(targetPosition, landingInMeters);
     const accuracyPercent = calculateAccuracyPercent(accuracyCm);
     const courtZone = determineCourtZone(landingInMeters);
-    const wasSuccessful = accuracyCm < 30;
-    const score = calculateScore(accuracyCm, inBox ?? null);
+    const wasSuccessful = inBox === true;
+    const score = calculateScore(accuracyCm);
 
     // Save shot to database (store positions in meters for consistency)
     const shot = await shotService.createShot({
