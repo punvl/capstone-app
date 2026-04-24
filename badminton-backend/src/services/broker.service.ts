@@ -130,7 +130,10 @@ class BrokerService {
     let targetPositionIndex: number | undefined;
 
     if (templateId) {
-      const templateTarget = templateService.getTargetForShot(templateId, shotNumber);
+      // Infer the target from where the shot landed rather than trusting shotNumber.
+      // CV occasionally drops shots; cycling by shotNumber would then misattribute
+      // every subsequent shot to the wrong target and tank the score.
+      const templateTarget = templateService.getClosestTargetForLanding(templateId, landingPosition);
       if (templateTarget) {
         // Use template's dot as target position (coordinates in cm)
         // Convert cm to meters for accuracy calculation (divide by 100)

@@ -4,7 +4,9 @@ import {
   calculateAccuracyPercent,
   isPointInBox,
   calculateScore,
+  findClosestTarget,
 } from '../../../utils/court.utils';
+import { TargetPosition } from '../../../types';
 
 describe('Court Utilities', () => {
   describe('isPointInBox', () => {
@@ -281,6 +283,57 @@ describe('Court Utilities', () => {
 
     it('should return 38cm score as 81', () => {
       expect(calculateScore(38)).toBe(81);
+    });
+  });
+
+  describe('findClosestTarget', () => {
+    // Synthetic positions: dots 1 and 2 share x so the tie-break test
+    // below can use a landing that is truly equidistant between them.
+    const positions: TargetPosition[] = [
+      { positionIndex: 0, box: { x1: 46, y1: -594, x2: 122, y2: -670 }, dot: { x: 46, y: -670 } },
+      { positionIndex: 1, box: { x1: 488, y1: -198, x2: 564, y2: -274 }, dot: { x: 526, y: -236 } },
+      { positionIndex: 2, box: { x1: 488, y1: 0, x2: 564, y2: -76 }, dot: { x: 526, y: -38 } },
+    ];
+
+    it('returns null for empty positions', () => {
+      expect(findClosestTarget({ x: 100, y: -100 }, [])).toBeNull();
+    });
+
+    it('returns the position whose box contains the landing', () => {
+      const result = findClosestTarget({ x: 100, y: -650 }, positions);
+      expect(result?.positionIndex).toBe(0);
+    });
+
+    it('prefers box containment over nearer-dot rivals', () => {
+      // Synthetic layout where a landing sits inside box A but dot B is closer.
+      // findClosestTarget must still return A.
+      const conflicting: TargetPosition[] = [
+        { positionIndex: 0, box: { x1: 0, y1: 0, x2: 100, y2: 100 }, dot: { x: 0, y: 0 } },
+        { positionIndex: 1, box: { x1: 200, y1: 200, x2: 300, y2: 300 }, dot: { x: 95, y: 95 } },
+      ];
+      const landing = { x: 90, y: 90 };
+      const result = findClosestTarget(landing, conflicting);
+      expect(result?.positionIndex).toBe(0);
+    });
+
+    it('falls back to nearest dot when outside all boxes', () => {
+      // Far away from any box; closest to dot 2 at (526, -38)
+      const landing = { x: 600, y: -20 };
+      const result = findClosestTarget(landing, positions);
+      expect(result?.positionIndex).toBe(2);
+    });
+
+    it('breaks ties deterministically on lower positionIndex', () => {
+      // Equidistant between dot 1 (526, -236) and dot 2 (526, -38): midpoint y = -137
+      const landing = { x: 526, y: -137 };
+      const result = findClosestTarget(landing, positions);
+      expect(result?.positionIndex).toBe(1);
+    });
+
+    it('handles single-position templates', () => {
+      const single: TargetPosition[] = [positions[0]];
+      const landing = { x: 999, y: 999 };
+      expect(findClosestTarget(landing, single)?.positionIndex).toBe(0);
     });
   });
 });

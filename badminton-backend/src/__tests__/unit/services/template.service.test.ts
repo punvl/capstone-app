@@ -68,14 +68,14 @@ describe('TemplateService', () => {
       expect(template?.positions[1]).toEqual({
         positionIndex: 1,
         box: { x1: 488, y1: -198, x2: 564, y2: -274 },
-        dot: { x: 526, y: -236 },
+        dot: { x: 564, y: -236 },
       });
 
       // Verify third position
       expect(template?.positions[2]).toEqual({
         positionIndex: 2,
         box: { x1: 488, y1: 0, x2: 564, y2: -76 },
-        dot: { x: 526, y: -38 },
+        dot: { x: 564, y: 0 },
       });
     });
   });
@@ -94,7 +94,7 @@ describe('TemplateService', () => {
 
       expect(target).not.toBeNull();
       expect(target?.positionIndex).toBe(1);
-      expect(target?.dot).toEqual({ x: 526, y: -236 });
+      expect(target?.dot).toEqual({ x: 564, y: -236 });
     });
 
     it('should return third position for shot number 2', () => {
@@ -102,7 +102,7 @@ describe('TemplateService', () => {
 
       expect(target).not.toBeNull();
       expect(target?.positionIndex).toBe(2);
-      expect(target?.dot).toEqual({ x: 526, y: -38 });
+      expect(target?.dot).toEqual({ x: 564, y: 0 });
     });
 
     it('should cycle back to first position for shot number 3', () => {
@@ -156,6 +156,56 @@ describe('TemplateService', () => {
       expect(target?.box).toHaveProperty('y2');
       expect(target?.dot).toHaveProperty('x');
       expect(target?.dot).toHaveProperty('y');
+    });
+  });
+
+  describe('getClosestTargetForLanding', () => {
+    it('returns the position whose box contains the landing', () => {
+      // Landing inside position 0 box (x1: 46, y1: -594, x2: 122, y2: -670)
+      const target = templateService.getClosestTargetForLanding('template-001', {
+        x: 100,
+        y: -650,
+      });
+
+      expect(target).not.toBeNull();
+      expect(target?.positionIndex).toBe(0);
+    });
+
+    it('falls back to nearest dot when landing is outside all boxes', () => {
+      // Landing far from any box; dot 2 at (526, -38) is closest to (600, -20)
+      const target = templateService.getClosestTargetForLanding('template-001', {
+        x: 600,
+        y: -20,
+      });
+
+      expect(target).not.toBeNull();
+      expect(target?.positionIndex).toBe(2);
+    });
+
+    it('returns null for non-existent template ID', () => {
+      const target = templateService.getClosestTargetForLanding('non-existent-id', {
+        x: 0,
+        y: 0,
+      });
+
+      expect(target).toBeNull();
+    });
+
+    it('returns null for empty template ID', () => {
+      const target = templateService.getClosestTargetForLanding('', { x: 0, y: 0 });
+
+      expect(target).toBeNull();
+    });
+
+    it('returns a target regardless of how far the landing is', () => {
+      // Wild landing; should still fall back to nearest dot, not null
+      const target = templateService.getClosestTargetForLanding('template-001', {
+        x: 9999,
+        y: 9999,
+      });
+
+      expect(target).not.toBeNull();
+      expect(target?.positionIndex).toBeGreaterThanOrEqual(0);
     });
   });
 

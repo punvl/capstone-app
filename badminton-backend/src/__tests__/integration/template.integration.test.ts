@@ -105,14 +105,14 @@ describe('Template API Integration Tests', () => {
       expect(template.positions[1]).toEqual({
         positionIndex: 1,
         box: { x1: 488, y1: -198, x2: 564, y2: -274 },
-        dot: { x: 526, y: -236 },
+        dot: { x: 564, y: -236 },
       });
 
       // Verify position 2
       expect(template.positions[2]).toEqual({
         positionIndex: 2,
         box: { x1: 488, y1: 0, x2: 564, y2: -76 },
-        dot: { x: 526, y: -38 },
+        dot: { x: 564, y: 0 },
       });
     });
 

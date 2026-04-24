@@ -1,4 +1,4 @@
-import { CourtZone } from '../types';
+import { CourtZone, TargetPosition } from '../types';
 
 // Standard badminton court dimensions
 const COURT_LENGTH = 13.4; // meters
@@ -61,5 +61,43 @@ export const isPointInBox = (
  */
 export const calculateScore = (accuracyCm: number): number => {
   return Math.max(0, (200 - accuracyCm) / 2);
+};
+
+/**
+ * Pick the target position the athlete most likely aimed at, given where the shot landed.
+ *
+ * Rule: if the landing is inside any target box, that box owns the shot (unambiguous).
+ * Otherwise pick the position whose dot is closest to the landing (Euclidean in cm).
+ * Ties are broken by lower positionIndex so the result is deterministic.
+ *
+ * Returns null if there are no positions to choose from.
+ *
+ * All coordinates are in the half-court cm system (x ∈ [0, 610], y ∈ [0, -670]).
+ */
+export const findClosestTarget = (
+  landing: { x: number; y: number },
+  positions: TargetPosition[]
+): TargetPosition | null => {
+  if (positions.length === 0) {
+    return null;
+  }
+
+  const containing = positions.find((p) => isPointInBox(landing, p.box));
+  if (containing) {
+    return containing;
+  }
+
+  let best = positions[0];
+  let bestDistSq = Infinity;
+  for (const pos of positions) {
+    const dx = landing.x - pos.dot.x;
+    const dy = landing.y - pos.dot.y;
+    const distSq = dx * dx + dy * dy;
+    if (distSq < bestDistSq) {
+      bestDistSq = distSq;
+      best = pos;
+    }
+  }
+  return best;
 };
 

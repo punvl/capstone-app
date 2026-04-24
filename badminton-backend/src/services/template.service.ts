@@ -1,5 +1,6 @@
 import { PRESET_TEMPLATES } from '../constants/templates';
 import { TargetTemplate, TargetPosition } from '../types';
+import { findClosestTarget } from '../utils/court.utils';
 
 class TemplateService {
   /**
@@ -31,6 +32,25 @@ class TemplateService {
 
     const positionIndex = shotNumber % template.positions.length;
     return template.positions[positionIndex];
+  }
+
+  /**
+   * Pick the target the athlete most likely aimed at, based on where the shot landed.
+   * Used instead of shot-number cycling so that missed CV detections don't shift every
+   * subsequent shot to the "wrong" target and wreck scoring.
+   *
+   * @param templateId - The template ID
+   * @param landing - Landing position in half-court cm (x ∈ [0, 610], y ∈ [0, -670])
+   */
+  getClosestTargetForLanding(
+    templateId: string,
+    landing: { x: number; y: number }
+  ): TargetPosition | null {
+    const template = this.getTemplateById(templateId);
+    if (!template) {
+      return null;
+    }
+    return findClosestTarget(landing, template.positions);
   }
 }
 
