@@ -83,9 +83,12 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
         inBox: shot.in_box,
         targetPositionIndex: shot.target_position_index,
       });
-      // Update current target index for next shot display
-      if (shot.target_position_index !== undefined) {
-        setCurrentTargetIndex(shot.target_position_index);
+      // Advance the "aim here next" cue locally. The backend now infers the actual
+      // target from where the shot landed, so shot.target_position_index reflects
+      // the inferred target, not the intended one — we can't use it to drive the cue.
+      const positionsLength = selectedTemplate?.positions.length ?? 0;
+      if (positionsLength > 0) {
+        setCurrentTargetIndex((prev) => (prev + 1) % positionsLength);
       }
     });
 
@@ -114,7 +117,7 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
       socket.off('session_stats_updated');
       socket.off('session_ended');
     };
-  }, [socket, currentSession]);
+  }, [socket, currentSession, selectedTemplate]);
 
   const loadAthletes = useCallback(async () => {
     try {
