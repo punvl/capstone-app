@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { io, Socket } from 'socket.io-client';
 import { Athlete, TrainingSession, Shot, ShotData, TargetTemplate } from '../types';
 import { api } from '../utils/api';
+import { logShotLatency, isLatencyLoggingEnabled } from '../utils/latency';
 
 interface TrainingContextType {
   athletes: Athlete[];
@@ -66,6 +67,8 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
     if (!socket || !currentSession) return;
 
     socket.on('shot_received', (shot: Shot) => {
+      // Stamp arrival time first, before any React work (t5).
+      const socketReceivedAt = Date.now();
       console.log('Shot received:', shot);
       setLiveCourtData({
         shotNumber: shot.shot_number,
@@ -83,6 +86,35 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
         inBox: shot.in_box,
         targetPositionIndex: shot.target_position_index,
       });
+
+      if (isLatencyLoggingEnabled()) {
+        // Double rAF: the first rAF runs just before paint; the second runs
+        // on the frame *after* the browser commits pixels — that's the true
+        // "user sees the shot" timestamp.
+        const pipelineTimestamps = shot as Shot & {
+          frameCapturedAt?: string;
+          shotDetectedAt?: string;
+          cvPublishedAt?: string;
+          brokerReceivedAt?: string;
+          brokerEmittedAt?: string;
+          session_id?: string;
+        };
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            logShotLatency({
+              sessionId: pipelineTimestamps.session_id ?? currentSession?.id ?? '',
+              shotNumber: shot.shot_number,
+              frameCapturedAt: pipelineTimestamps.frameCapturedAt,
+              shotDetectedAt: pipelineTimestamps.shotDetectedAt,
+              cvPublishedAt: pipelineTimestamps.cvPublishedAt,
+              brokerReceivedAt: pipelineTimestamps.brokerReceivedAt,
+              brokerEmittedAt: pipelineTimestamps.brokerEmittedAt,
+              socketReceivedAt,
+              paintedAt: Date.now(),
+            });
+          });
+        });
+      }
       // Advance the "aim here next" cue locally. The backend now infers the actual
       // target from where the shot landed, so shot.target_position_index reflects
       // the inferred target, not the intended one — we can't use it to drive the cue.

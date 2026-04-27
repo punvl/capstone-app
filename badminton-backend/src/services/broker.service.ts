@@ -6,6 +6,7 @@ import { sessionService } from './session.service';
 import { templateService } from './template.service';
 import { socketHandler } from '../websocket/socket.handler';
 import { calculateAccuracy, determineCourtZone, calculateAccuracyPercent, isPointInBox, calculateScore } from '../utils/court.utils';
+import { logShotLatency } from '../utils/latency';
 
 class BrokerService {
   private connection: ChannelModel | null = null;
@@ -100,11 +101,13 @@ class BrokerService {
       BROKER_CONFIG.queues.shotData,
       async (msg: ConsumeMessage | null) => {
         if (msg) {
+          // Stamp arrival time before any parsing/processing (t3)
+          const brokerReceivedAt = new Date().toISOString();
           try {
             const shotData: ShotDataFromCV = JSON.parse(msg.content.toString());
             console.log(`[BROKER] Received shot data:`, shotData);
 
-            await this.processShotData(shotData);
+            await this.processShotData(shotData, brokerReceivedAt);
 
             this.channel!.ack(msg);
           } catch (error) {
@@ -117,8 +120,17 @@ class BrokerService {
     );
   }
 
-  private async processShotData(shotData: ShotDataFromCV) {
-    const { sessionId, shotNumber, timestamp, landingPosition, velocity, detectionConfidence } = shotData;
+  private async processShotData(shotData: ShotDataFromCV, brokerReceivedAt: string) {
+    const {
+      sessionId,
+      shotNumber,
+      frameCapturedAt,
+      shotDetectedAt,
+      cvPublishedAt,
+      landingPosition,
+      velocity,
+      detectionConfidence,
+    } = shotData;
 
     // Get session to retrieve template_id
     const session = await sessionService.getSessionById(sessionId, []);
@@ -162,10 +174,11 @@ class BrokerService {
     const score = calculateScore(accuracyCm);
 
     // Save shot to database (store positions in meters for consistency)
+    // Shot.timestamp semantically means "when CV detected the landing"
     const shot = await shotService.createShot({
       sessionId,
       shotNumber,
-      timestamp: new Date(timestamp),
+      timestamp: new Date(shotDetectedAt),
       landingPositionX: landingInMeters.x,
       landingPositionY: landingInMeters.y,
       targetPositionX: targetPosition.x,
@@ -191,7 +204,27 @@ class BrokerService {
     );
 
     // OPTIMIZATION 2: Immediate shot broadcast (real-time UX)
-    socketHandler.emitShotData(sessionId, shot);
+    // Stamp emit time (t4) and forward all pipeline timestamps to the client so
+    // the frontend can log end-to-end latency from camera frame to pixel paint.
+    const brokerEmittedAt = new Date().toISOString();
+    socketHandler.emitShotData(sessionId, {
+      ...shot,
+      frameCapturedAt,
+      shotDetectedAt,
+      cvPublishedAt,
+      brokerReceivedAt,
+      brokerEmittedAt,
+    });
+
+    logShotLatency({
+      sessionId,
+      shotNumber,
+      frameCapturedAt,
+      shotDetectedAt,
+      cvPublishedAt,
+      brokerReceivedAt,
+      brokerEmittedAt,
+    });
 
     // OPTIMIZATION 3: Debounced stats broadcast (reduce WebSocket overhead)
     this.scheduleDebouncedStatsBroadcast(sessionId, {

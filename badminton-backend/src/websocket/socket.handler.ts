@@ -34,7 +34,11 @@ class SocketHandler {
     console.log('✅ WebSocket initialized');
   }
 
-  emitShotData(sessionId: string, shotData: any) {
+  // shotData is the persisted Shot entity augmented with pipeline latency
+  // timestamps (frameCapturedAt, shotDetectedAt, cvPublishedAt,
+  // brokerReceivedAt, brokerEmittedAt). The frontend reads these to log
+  // end-to-end latency when REACT_APP_LATENCY_LOG is enabled.
+  emitShotData(sessionId: string, shotData: Record<string, unknown>) {
     if (!this.io) return;
     this.io.to(`session_${sessionId}`).emit('shot_received', shotData);
   }

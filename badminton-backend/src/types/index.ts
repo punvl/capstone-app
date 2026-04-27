@@ -11,7 +11,9 @@ export interface AuthRequest extends Request {
 export interface ShotDataFromCV {
   sessionId: string;
   shotNumber: number;
-  timestamp: string;
+  frameCapturedAt: string; // ISO-8601 UTC — when the camera frame was captured (t0)
+  shotDetectedAt: string;  // ISO-8601 UTC — when CV finished detection (t1)
+  cvPublishedAt: string;   // ISO-8601 UTC — when CV called basic_publish (t2)
   landingPosition: { x: number; y: number }; // In cm (half-court: 0-610 x 0-670)
   velocity?: number;
   detectionConfidence?: number;

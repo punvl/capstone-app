@@ -24,7 +24,9 @@ RabbitMQ message types: (from badminton-backend/src/types/index.ts)
 export interface ShotDataFromCV {
   sessionId: string;
   shotNumber: number;
-  timestamp: string;
+  frameCapturedAt: string;  // ISO-8601 UTC — t0, camera frame captured
+  shotDetectedAt: string;   // ISO-8601 UTC — t1, CV finished detection
+  cvPublishedAt: string;    // ISO-8601 UTC — t2, right before basic_publish
   landingPosition: { x: number; y: number }; // In cm (half-court: 0-610 x 0-670)
   velocity?: number;
   detectionConfidence?: number;
@@ -68,11 +70,12 @@ HALF_COURT_WIDTH = 610   # cm
 HALF_COURT_DEPTH = 670   # cm
 
 # Template-001 target dots (exact landing positions for 100% accuracy)
+# MUST stay in sync with badminton-backend/src/constants/templates.ts
 # Shot N lands on position N % 3, cycling through all 3 positions
 TEMPLATE_001_DOTS = [
     {'x': 46, 'y': -670},   # Position 0 - Bottom-left corner (baseline)
-    {'x': 526, 'y': -236},  # Position 1 - Mid-right area
-    {'x': 526, 'y': -38},   # Position 2 - Top-right near net
+    {'x': 564, 'y': -236},  # Position 1 - Mid-right area
+    {'x': 564, 'y': 0},     # Position 2 - Top-right at net
 ]
 
 
@@ -158,10 +161,17 @@ def generate_mock_shot(session_id, shot_number, template_id=None):
     # Detection confidence (CV system confidence: 0.85-0.99)
     confidence = round(random.uniform(0.88, 0.98), 2)
 
+    # Mock has no real camera/detect pipeline, so all three CV timestamps
+    # share the same value. Real CV distinguishes frame-capture vs
+    # detect-complete vs publish; see docs/ and e2e latency plan.
+    now_iso = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+
     shot_data = {
         'sessionId': session_id,
         'shotNumber': shot_number,
-        'timestamp': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+        'frameCapturedAt': now_iso,
+        'shotDetectedAt': now_iso,
+        'cvPublishedAt': now_iso,
         'landingPosition': landing,  # In cm (half-court: x=0-610, y=0 to -670)
         'velocity': velocity,
         'detectionConfidence': confidence
@@ -183,9 +193,12 @@ class MockCVComponent:
     BlockingConnection is not thread-safe.
     """
 
-    def __init__(self, interval_ms=1500, template_id=None):
+    def __init__(self, interval_ms=1500, template_id=None, drop_every=0):
         self.interval_seconds = interval_ms / 1000.0
         self.template_id = template_id
+        # Simulate CV miss: every Nth intended shot is dropped (0 = never).
+        # Intended counter advances (next aim rotates), cv counter does not.
+        self.drop_every = drop_every
 
         # Ignore messages published before this component started
         self._started_at = datetime.now(timezone.utc)
@@ -194,6 +207,7 @@ class MockCVComponent:
         self._lock = threading.Lock()
         self._active_session_id = None
         self._shot_counter = 0
+        self._intended_counter = 0
         self._running = True
 
         # Connections (each owned by one thread)
@@ -257,6 +271,7 @@ class MockCVComponent:
                               f"{self._active_session_id} with {session_id}")
                     self._active_session_id = session_id
                     self._shot_counter = 0
+                    self._intended_counter = 0
                 print(f"[Consumer] Session started: {session_id}")
 
             elif routing_key == 'session.stop':
@@ -266,6 +281,7 @@ class MockCVComponent:
                         print(f"[Consumer] Session stopped: {session_id}")
                         self._active_session_id = None
                         self._shot_counter = 0
+                        self._intended_counter = 0
                     else:
                         print(f"[Consumer] Ignoring stop for {session_id} "
                               f"(active: {self._active_session_id})")
@@ -350,27 +366,46 @@ class MockCVComponent:
                 time.sleep(0.5)
                 continue
 
-            # Increment shot counter and generate shot
+            # Advance the intended aim (athlete rotates targets even on CV misses)
             with self._lock:
-                self._shot_counter += 1
-                shot_num = self._shot_counter
-                # Re-check session is still active after acquiring lock
+                self._intended_counter += 1
+                intended_num = self._intended_counter
                 session_id = self._active_session_id
                 if session_id is None:
                     continue
 
-            shot_data = generate_mock_shot(session_id, shot_num, self.template_id)
+            # Decide if CV "drops" this one
+            dropped = (
+                self.drop_every > 0 and intended_num % self.drop_every == 0
+            )
+            intended_pos = intended_num % 3
+
+            if dropped:
+                # Landing would have been on intended_pos but CV never sends it.
+                print(f"  [DROPPED by CV] intended #{intended_num} "
+                      f"(would-aim pos {intended_pos})")
+                time.sleep(self.interval_seconds)
+                continue
+
+            # Landing uses the INTENDED shot number so aim rotates even after drops.
+            # shotNumber sent to backend uses the CV counter (skips drops).
+            with self._lock:
+                self._shot_counter += 1
+                cv_num = self._shot_counter
+
+            shot_data = generate_mock_shot(session_id, intended_num, self.template_id)
+            shot_data['shotNumber'] = cv_num
             landing = shot_data['landingPosition']
 
             if self._publish_shot(shot_data):
                 extra = ""
                 if self.template_id:
-                    position_index = shot_num % 3
-                    extra = f" | Template pos {position_index}"
-                print(f"  Shot #{shot_num} -> ({landing['x']}, {landing['y']}) cm "
+                    extra = f" | intended pos {intended_pos}"
+                print(f"  Shot cv#{cv_num} (intended #{intended_num}) -> "
+                      f"({landing['x']}, {landing['y']}) cm "
                       f"| {shot_data['velocity']} km/h{extra}")
             else:
-                print(f"  Shot #{shot_num} FAILED to send")
+                print(f"  Shot cv#{cv_num} FAILED to send")
 
             time.sleep(self.interval_seconds)
 
@@ -384,6 +419,8 @@ class MockCVComponent:
         print(f"Interval: {self.interval_seconds}s between shots")
         if self.template_id:
             print(f"Template: {self.template_id} (100% accurate shots)")
+        if self.drop_every:
+            print(f"Drop simulation: every {self.drop_every}th intended shot is dropped")
         print("Waiting for session.start messages...")
         print("=" * 60)
 
@@ -533,6 +570,8 @@ Modes:
                         help='Interval between shots in ms (default: 1500 event-driven, 3000 legacy)')
     parser.add_argument('--template', type=str, default=None,
                         help='Template ID for 100%% accurate shots (e.g., template-001)')
+    parser.add_argument('--drop-every', type=int, default=0,
+                        help='Simulate CV miss: drop every Nth intended shot (event-driven only, default 0 = never)')
 
     args = parser.parse_args()
 
@@ -544,7 +583,11 @@ Modes:
     else:
         # Event-driven mode
         interval = args.interval_ms if args.interval_ms is not None else 1500
-        component = MockCVComponent(interval_ms=interval, template_id=args.template)
+        component = MockCVComponent(
+            interval_ms=interval,
+            template_id=args.template,
+            drop_every=args.drop_every,
+        )
 
         # Graceful shutdown on SIGTERM (e.g., docker stop)
         signal.signal(signal.SIGTERM, lambda sig, frame: component.shutdown())
