@@ -86,32 +86,32 @@ export const PRESET_TEMPLATES: TargetTemplate[] = [
       {
         positionIndex: 0,
         box: { x1: 0, y1: 0, x2: 305, y2: -223 },
-        dot: { x: 152, y: -112 },
+        dot: { x: 0, y: 0 },
       },
       {
         positionIndex: 1,
         box: { x1: 305, y1: 0, x2: 610, y2: -223 },
-        dot: { x: 458, y: -112 },
+        dot: { x: 610, y: 0 },
       },
       {
         positionIndex: 2,
         box: { x1: 0, y1: -223, x2: 305, y2: -447 },
-        dot: { x: 152, y: -335 },
+        dot: { x: 0, y: -335 },
       },
       {
         positionIndex: 3,
         box: { x1: 305, y1: -223, x2: 610, y2: -447 },
-        dot: { x: 458, y: -335 },
+        dot: { x: 610, y: -335 },
       },
       {
         positionIndex: 4,
         box: { x1: 0, y1: -447, x2: 305, y2: -670 },
-        dot: { x: 152, y: -558 },
+        dot: { x: 0, y: -670 },
       },
       {
         positionIndex: 5,
         box: { x1: 305, y1: -447, x2: 610, y2: -670 },
-        dot: { x: 458, y: -558 },
+        dot: { x: 610, y: -670 },
       },
     ],
   },
