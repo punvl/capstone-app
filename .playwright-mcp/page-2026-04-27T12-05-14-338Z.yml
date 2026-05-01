@@ -1,0 +1,125 @@
+- generic [ref=e30]:
+  - banner [ref=e31]:
+    - generic [ref=e33]:
+      - generic [ref=e34] [cursor=pointer]:
+        - img [ref=e36]
+        - paragraph [ref=e38]: SHUTTLECOACH
+      - generic [ref=e39]:
+        - button "Training" [ref=e185] [cursor=pointer]:
+          - img [ref=e42]
+          - text: Training
+        - button "Performance" [ref=e186] [cursor=pointer]:
+          - img [ref=e46]
+          - text: Performance
+        - button "Athletes" [ref=e187] [cursor=pointer]:
+          - img [ref=e50]
+          - text: Athletes
+      - button "C" [ref=e188] [cursor=pointer]:
+        - generic [ref=e53]: C
+  - generic [ref=e54]:
+    - generic [ref=e55]:
+      - generic [ref=e56]:
+        - img [ref=e57]
+        - paragraph [ref=e59]: TRAINING CONTROL
+        - paragraph [ref=e224]: Live
+      - paragraph [ref=e60]: Select an athlete and template to begin tracking
+    - generic [ref=e61]:
+      - generic [ref=e62]:
+        - generic [ref=e64]:
+          - generic [ref=e65]:
+            - generic [ref=e66]:
+              - img [ref=e67]
+              - paragraph [ref=e69]: Athlete Selection
+            - button "New Athlete" [ref=e189] [cursor=pointer]:
+              - img [ref=e72]
+              - text: New Athlete
+          - generic [ref=e74]:
+            - generic [ref=e118]: Select Athlete
+            - generic [ref=e75]:
+              - combobox [disabled] [ref=e76]:
+                - generic [ref=e131]:
+                  - text: Test Athlete
+                  - generic [ref=e133]: intermediate
+              - textbox [disabled]: 19eaf58a-c46b-4c08-a35d-e0c6c680653e
+              - img
+              - group
+        - generic [ref=e78]:
+          - generic [ref=e79]:
+            - img [ref=e80]
+            - paragraph [ref=e82]: Target Template
+          - generic [ref=e83]:
+            - generic [ref=e144]: Select Template *
+            - generic [ref=e84]:
+              - combobox [disabled] [ref=e85]:
+                - generic [ref=e190]:
+                  - paragraph [ref=e191]: template-001
+                  - generic [ref=e192]: first template • 3 positions
+              - textbox [disabled]: template-001
+              - img
+              - group
+          - alert [ref=e193]:
+            - img [ref=e195]
+            - generic [ref=e197]:
+              - strong [ref=e198]: template-001
+              - text: "- first template"
+              - generic [ref=e199]: "3 target positions • Shots cycle: 1→2→3→1→2→3..."
+          - img [ref=e202]:
+            - generic [ref=e204]: NET
+            - generic [ref=e205]: Back Line (670cm)
+            - generic [ref=e209]: "1"
+            - generic [ref=e213]: "2"
+            - generic [ref=e217]: "3"
+        - generic [ref=e226]:
+          - generic [ref=e227]:
+            - img [ref=e228]
+            - paragraph [ref=e230]: Live Session
+          - generic [ref=e231]:
+            - generic [ref=e232]:
+              - paragraph [ref=e233]: Duration
+              - paragraph [ref=e234]: 0m
+            - generic [ref=e235]:
+              - paragraph [ref=e236]: Total Shots
+              - paragraph [ref=e237]: "0"
+            - generic [ref=e238]:
+              - paragraph [ref=e239]: On Target
+              - paragraph [ref=e240]: "0"
+            - generic [ref=e241]:
+              - paragraph [ref=e242]: Success Rate
+              - paragraph [ref=e243]: 0%
+            - generic [ref=e244]:
+              - paragraph [ref=e245]: Avg Score
+              - paragraph [ref=e246]: —
+          - generic [ref=e247]:
+            - generic [ref=e248]:
+              - img [ref=e249]
+              - paragraph [ref=e251]: "Template: template-001"
+            - generic [ref=e254]: Position 1 / 3
+      - generic [ref=e91]:
+        - generic [ref=e93]:
+          - generic [ref=e94]:
+            - img [ref=e95]
+            - paragraph [ref=e97]: Training Session
+            - generic [ref=e256]: ACTIVE
+          - alert [ref=e257]:
+            - img [ref=e259]
+            - generic [ref=e261]:
+              - strong [ref=e263]: "📋 Session ID (copy this for mock CV script):"
+              - paragraph [ref=e264] [cursor=pointer]: f4b36751-1c16-43da-ae66-82c9a7b20f29
+              - generic [ref=e265]:
+                - text: "💡 Click to copy • Run:"
+                - code [ref=e266]: python3 mock_cv_component.py f4b36751-1c16-43da-ae66-82c9a7b20f29
+          - generic [ref=e98]:
+            - button "START TRAINING" [disabled]:
+              - generic:
+                - img
+              - text: START TRAINING
+            - button "STOP TRAINING" [ref=e267] [cursor=pointer]:
+              - img [ref=e269]
+              - text: STOP TRAINING
+        - generic [ref=e104]:
+          - generic [ref=e105]:
+            - paragraph [ref=e106]: Live Shot Tracking
+            - paragraph [ref=e273]: Recording
+          - img [ref=e276]:
+            - generic [ref=e278]: NET
+            - generic [ref=e279]: Back Line (670cm)

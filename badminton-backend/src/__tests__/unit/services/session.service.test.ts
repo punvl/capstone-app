@@ -68,9 +68,9 @@ describe('SessionService', () => {
         end_time: null,
         status: 'completed',
         total_shots: 0,
-        successful_shots: 0,
+        in_box_shots: 0,
         average_accuracy_cm: null,
-        average_accuracy_percent: null,
+        average_score: null,
         average_shot_velocity_kmh: null,
         session_notes: null,
         session_rating: null,
@@ -99,9 +99,9 @@ describe('SessionService', () => {
         end_time: null,
         status: 'in_progress',
         total_shots: 0,
-        successful_shots: 0,
+        in_box_shots: 0,
         average_accuracy_cm: null,
-        average_accuracy_percent: null,
+        average_score: null,
         average_shot_velocity_kmh: null,
         session_notes: null,
         session_rating: null,
@@ -251,9 +251,9 @@ describe('SessionService', () => {
   describe('updateSessionStats', () => {
     it('should calculate and update session stats from shots', async () => {
       const mockShots = [
-        { accuracy_percent: 80, velocity_kmh: 120, was_successful: true, score: 70 },
-        { accuracy_percent: 90, velocity_kmh: 130, was_successful: true, score: 90 },
-        { accuracy_percent: 70, velocity_kmh: 110, was_successful: false, score: 50 },
+        { score: 80, velocity_kmh: 120, in_box: true },
+        { score: 90, velocity_kmh: 130, in_box: true },
+        { score: 70, velocity_kmh: 110, in_box: false },
       ];
 
       const mockSession = {
@@ -267,10 +267,9 @@ describe('SessionService', () => {
       const result = await sessionService.updateSessionStats('session-123');
 
       expect(result.total_shots).toBe(3);
-      expect(result.successful_shots).toBe(2);
-      expect(result.average_accuracy_percent).toBe(80); // (80+90+70)/3
+      expect(result.in_box_shots).toBe(2);
+      expect(result.average_score).toBe(80); // (80+90+70)/3
       expect(result.average_shot_velocity_kmh).toBe(120); // (120+130+110)/3
-      expect(result.average_score).toBeCloseTo(70, 1); // (70+90+50)/3
     });
 
     it('should handle session with no shots', async () => {
@@ -293,69 +292,62 @@ describe('SessionService', () => {
       const mockSession = {
         id: 'session-123',
         total_shots: 2,
-        successful_shots: 1,
-        average_accuracy_percent: 75,
+        in_box_shots: 1,
+        average_score: 75,
         average_shot_velocity_kmh: 100,
-        average_score: 70,
       };
 
       mockSessionRepository.findOne.mockResolvedValue(mockSession as TrainingSession);
       mockSessionRepository.save.mockImplementation((session) => Promise.resolve(session));
 
-      const result = await sessionService.incrementalUpdateStats('session-123', 90, 120, true, 80);
+      const result = await sessionService.incrementalUpdateStats('session-123', 90, 120, true);
 
       expect(result.total_shots).toBe(3);
-      expect(result.successful_shots).toBe(2);
-      // New avg accuracy: (75*2 + 90) / 3 = 80
-      expect(result.average_accuracy_percent).toBe(80);
+      expect(result.in_box_shots).toBe(2);
+      // New avg score: (75*2 + 90) / 3 = 80
+      expect(result.average_score).toBe(80);
       // New avg velocity: (100*2 + 120) / 3 = 106.666...
       expect(result.average_shot_velocity_kmh).toBeCloseTo(106.67, 1);
-      // New avg score: (70*2 + 80) / 3 = 73.333...
-      expect(result.average_score).toBeCloseTo(73.33, 1);
     });
 
     it('should handle first shot in session', async () => {
       const mockSession = {
         id: 'session-123',
         total_shots: 0,
-        successful_shots: 0,
-        average_accuracy_percent: 0,
-        average_shot_velocity_kmh: 0,
+        in_box_shots: 0,
         average_score: 0,
+        average_shot_velocity_kmh: 0,
       };
 
       mockSessionRepository.findOne.mockResolvedValue(mockSession as TrainingSession);
       mockSessionRepository.save.mockImplementation((session) => Promise.resolve(session));
 
-      const result = await sessionService.incrementalUpdateStats('session-123', 85, 115, true, 90);
+      const result = await sessionService.incrementalUpdateStats('session-123', 85, 115, true);
 
       expect(result.total_shots).toBe(1);
-      expect(result.successful_shots).toBe(1);
-      expect(result.average_accuracy_percent).toBe(85);
+      expect(result.in_box_shots).toBe(1);
+      expect(result.average_score).toBe(85);
       expect(result.average_shot_velocity_kmh).toBe(115);
-      expect(result.average_score).toBe(90);
     });
 
-    it('should handle unsuccessful shot', async () => {
+    it('should handle out-of-box shot', async () => {
       const mockSession = {
         id: 'session-123',
         total_shots: 1,
-        successful_shots: 1,
-        average_accuracy_percent: 80,
+        in_box_shots: 1,
+        average_score: 80,
         average_shot_velocity_kmh: 120,
-        average_score: 75,
       };
 
       mockSessionRepository.findOne.mockResolvedValue(mockSession as TrainingSession);
       mockSessionRepository.save.mockImplementation((session) => Promise.resolve(session));
 
-      const result = await sessionService.incrementalUpdateStats('session-123', 60, 90, false, 40);
+      const result = await sessionService.incrementalUpdateStats('session-123', 60, 90, false);
 
       expect(result.total_shots).toBe(2);
-      expect(result.successful_shots).toBe(1); // No increment for unsuccessful
-      expect(result.average_accuracy_percent).toBe(70); // (80*1 + 60) / 2
+      expect(result.in_box_shots).toBe(1); // No increment when not in box
+      expect(result.average_score).toBe(70); // (80*1 + 60) / 2
       expect(result.average_shot_velocity_kmh).toBe(105); // (120*1 + 90) / 2
-      expect(result.average_score).toBeCloseTo(57.5, 1); // (75*1 + 40) / 2
     });
   });
 

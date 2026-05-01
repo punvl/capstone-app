@@ -63,7 +63,6 @@ const TrainingHistoryTable: React.FC<TrainingHistoryTableProps> = ({ sessions, a
               <TableCell>Date</TableCell>
               <TableCell>Coach</TableCell>
               <TableCell align="center">Shots</TableCell>
-              <TableCell align="center">Accuracy</TableCell>
               <TableCell align="center">Score</TableCell>
               <TableCell align="center">Velocity</TableCell>
               <TableCell align="center">Status</TableCell>
@@ -84,22 +83,11 @@ const TrainingHistoryTable: React.FC<TrainingHistoryTableProps> = ({ sessions, a
                   {session.total_shots || 0}
                 </TableCell>
                 <TableCell align="center">
-                  {session.average_accuracy_percent != null ? (
-                    <Typography sx={{
-                      fontSize: '0.875rem', fontWeight: 600,
-                      color: Number(session.average_accuracy_percent) >= 70 ? '#00E5A0'
-                        : Number(session.average_accuracy_percent) >= 40 ? '#FBBF24' : '#F87171',
-                    }}>
-                      {Number(session.average_accuracy_percent).toFixed(1)}%
-                    </Typography>
-                  ) : <Typography sx={{ color: '#4B5563', fontSize: '0.875rem' }}>—</Typography>}
-                </TableCell>
-                <TableCell align="center">
                   {session.average_score != null ? (
                     <Typography sx={{
                       fontSize: '0.875rem', fontWeight: 600,
-                      color: Number(session.average_score) >= 90 ? '#00E5A0'
-                        : Number(session.average_score) >= 75 ? '#FBBF24' : '#F87171',
+                      color: Number(session.average_score) >= 70 ? '#00E5A0'
+                        : Number(session.average_score) >= 40 ? '#FBBF24' : '#F87171',
                     }}>
                       {Number(session.average_score).toFixed(1)}
                     </Typography>

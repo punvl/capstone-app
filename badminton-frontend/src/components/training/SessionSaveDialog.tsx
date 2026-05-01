@@ -103,16 +103,16 @@ const SessionSaveDialog: React.FC<SessionSaveDialogProps> = ({
               <strong>Total Shots:</strong> {session.total_shots || 0}
             </Typography>
             <Typography variant="body1" gutterBottom>
-              <strong>Successful Shots:</strong> {session.successful_shots || 0}
+              <strong>In-Box Shots:</strong> {session.in_box_shots || 0}
             </Typography>
 
             {session.total_shots > 0 && (
               <>
                 <Typography variant="body1" gutterBottom>
-                  <strong>Average Accuracy:</strong>{' '}
-                  {session.average_accuracy_percent !== null &&
-                  session.average_accuracy_percent !== undefined
-                    ? `${Number(session.average_accuracy_percent).toFixed(1)}%`
+                  <strong>Average Score:</strong>{' '}
+                  {session.average_score !== null &&
+                  session.average_score !== undefined
+                    ? Number(session.average_score).toFixed(1)
                     : '-'}
                 </Typography>
                 <Typography variant="body1" gutterBottom>

@@ -687,14 +687,23 @@ export default React.memo(
       );
     }
 
-    // For review mode: only re-render if shots array, halfCourt, or targetBox changes
+    // For review mode: re-render if shots content, dimensions, halfCourt, targetBox, or showLabels changes.
+    // NOTE: Comparing shots.length alone is insufficient — SessionDetail passes a new single-element
+    // array ([session.shots[selectedShotIndex]]) every render, so length is always 1 while the
+    // underlying shot changes. Compare each shot by reference (shots don't mutate in place).
     if (prevProps.mode === 'review' && nextProps.mode === 'review') {
+      const prevShots = prevProps.shots ?? [];
+      const nextShots = nextProps.shots ?? [];
+      if (prevShots.length !== nextShots.length) return false;
+      for (let i = 0; i < prevShots.length; i++) {
+        if (prevShots[i] !== nextShots[i]) return false;
+      }
       return (
-        prevProps.shots?.length === nextProps.shots?.length &&
         prevProps.width === nextProps.width &&
         prevProps.height === nextProps.height &&
         prevProps.halfCourt === nextProps.halfCourt &&
-        prevProps.targetBox === nextProps.targetBox
+        prevProps.targetBox === nextProps.targetBox &&
+        prevProps.showLabels === nextProps.showLabels
       );
     }
 

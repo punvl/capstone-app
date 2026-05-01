@@ -1,9 +1,8 @@
 import {
   calculateAccuracy,
   determineCourtZone,
-  calculateAccuracyPercent,
-  isPointInBox,
   calculateScore,
+  isPointInBox,
   findClosestTarget,
 } from '../../../utils/court.utils';
 import { TargetPosition } from '../../../types';
@@ -236,53 +235,26 @@ describe('Court Utilities', () => {
     });
   });
 
-  describe('calculateAccuracyPercent', () => {
-    it('should return 100% for 0cm distance', () => {
-      expect(calculateAccuracyPercent(0)).toBe(100);
-    });
-
-    it('should return 75% for 50cm distance', () => {
-      expect(calculateAccuracyPercent(50)).toBe(75);
-    });
-
-    it('should return 50% for 100cm distance', () => {
-      expect(calculateAccuracyPercent(100)).toBe(50);
-    });
-
-    it('should return 0% for 200cm or more', () => {
-      expect(calculateAccuracyPercent(200)).toBe(0);
-      expect(calculateAccuracyPercent(300)).toBe(0);
-    });
-
-    it('should never return negative percentage', () => {
-      expect(calculateAccuracyPercent(500)).toBe(0);
-    });
-  });
-
   describe('calculateScore', () => {
-    it('should return 100 for perfect landing (0cm)', () => {
+    it('should return 100 for 0cm distance', () => {
       expect(calculateScore(0)).toBe(100);
-    });
-
-    it('should return 50 for 100cm distance', () => {
-      expect(calculateScore(100)).toBe(50);
     });
 
     it('should return 75 for 50cm distance', () => {
       expect(calculateScore(50)).toBe(75);
     });
 
-    it('should return 0 for 200cm distance', () => {
+    it('should return 50 for 100cm distance', () => {
+      expect(calculateScore(100)).toBe(50);
+    });
+
+    it('should return 0 for 200cm or more', () => {
       expect(calculateScore(200)).toBe(0);
+      expect(calculateScore(300)).toBe(0);
     });
 
     it('should never return negative score', () => {
       expect(calculateScore(500)).toBe(0);
-      expect(calculateScore(300)).toBe(0);
-    });
-
-    it('should return 38cm score as 81', () => {
-      expect(calculateScore(38)).toBe(81);
     });
   });
 

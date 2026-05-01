@@ -21,10 +21,9 @@ interface StopSessionData {
 
 interface SessionStats {
   totalShots: number;
-  successfulShots: number;
-  averageAccuracy: number;
-  averageVelocity: number;
+  inBoxShots: number;
   averageScore: number;
+  averageVelocity: number;
 }
 
 interface SessionListFilters {
@@ -134,23 +133,21 @@ class SessionService {
     const stats = session.shots.reduce<SessionStats>(
       (acc, shot) => {
         acc.totalShots++;
-        if (shot.was_successful) {
-          acc.successfulShots++;
+        if (shot.in_box) {
+          acc.inBoxShots++;
         }
-        acc.averageAccuracy += Number(shot.accuracy_percent || 0);
-        acc.averageVelocity += Number(shot.velocity_kmh || 0);
         acc.averageScore += Number(shot.score || 0);
+        acc.averageVelocity += Number(shot.velocity_kmh || 0);
         return acc;
       },
-      { totalShots: 0, successfulShots: 0, averageAccuracy: 0, averageVelocity: 0, averageScore: 0 }
+      { totalShots: 0, inBoxShots: 0, averageScore: 0, averageVelocity: 0 }
     );
 
     const totalShots = stats.totalShots;
     session.total_shots = totalShots;
-    session.successful_shots = stats.successfulShots;
-    session.average_accuracy_percent = stats.averageAccuracy / totalShots;
-    session.average_shot_velocity_kmh = stats.averageVelocity / totalShots;
+    session.in_box_shots = stats.inBoxShots;
     session.average_score = stats.averageScore / totalShots;
+    session.average_shot_velocity_kmh = stats.averageVelocity / totalShots;
 
     return await this.sessionRepository.save(session);
   }
@@ -162,27 +159,24 @@ class SessionService {
    */
   async incrementalUpdateStats(
     sessionId: string,
-    newShotAccuracy: number,
+    newShotScore: number,
     newShotVelocity: number,
-    wasSuccessful: boolean,
-    newShotScore: number
+    inBox: boolean
   ): Promise<TrainingSession> {
     const session = await this.getSessionById(sessionId, []); // No relations needed
 
     const oldTotal = session.total_shots || 0;
     const newTotal = oldTotal + 1;
 
-    const oldAvgAccuracy = Number(session.average_accuracy_percent || 0);
-    const oldAvgVelocity = Number(session.average_shot_velocity_kmh || 0);
     const oldAvgScore = Number(session.average_score || 0);
+    const oldAvgVelocity = Number(session.average_shot_velocity_kmh || 0);
 
     session.total_shots = newTotal;
-    session.successful_shots = (session.successful_shots || 0) + (wasSuccessful ? 1 : 0);
+    session.in_box_shots = (session.in_box_shots || 0) + (inBox ? 1 : 0);
 
     // Running average: new_avg = (old_avg * old_count + new_value) / new_count
-    session.average_accuracy_percent = (oldAvgAccuracy * oldTotal + newShotAccuracy) / newTotal;
-    session.average_shot_velocity_kmh = (oldAvgVelocity * oldTotal + newShotVelocity) / newTotal;
     session.average_score = (oldAvgScore * oldTotal + newShotScore) / newTotal;
+    session.average_shot_velocity_kmh = (oldAvgVelocity * oldTotal + newShotVelocity) / newTotal;
 
     return await this.sessionRepository.save(session);
   }

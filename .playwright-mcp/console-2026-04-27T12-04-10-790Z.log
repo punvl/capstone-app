@@ -1,0 +1,42 @@
+[     223ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/static/js/bundle.js:72811
+[     237ms] [LOG] [LAT] frontend latency logging disabled (set REACT_APP_LATENCY_LOG=true and rebuild to enable) @ http://localhost:3000/static/js/bundle.js:103124
+[     261ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: false, isLoading: true} @ http://localhost:3000/static/js/bundle.js:96176
+[     261ms] [LOG] [ProtectedRoute] Showing loading spinner @ http://localhost:3000/static/js/bundle.js:96181
+[     261ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: false, isLoading: true} @ http://localhost:3000/static/js/bundle.js:96176
+[     261ms] [LOG] [ProtectedRoute] Showing loading spinner @ http://localhost:3000/static/js/bundle.js:96181
+[     269ms] [LOG] [AuthContext] checkAuth started @ http://localhost:3000/static/js/bundle.js:102200
+[     270ms] [LOG] [AuthContext] Token in localStorage: none @ http://localhost:3000/static/js/bundle.js:102203
+[     270ms] [LOG] [AuthContext] Setting isLoading to false @ http://localhost:3000/static/js/bundle.js:102220
+[     271ms] [LOG] [AuthContext] checkAuth started @ http://localhost:3000/static/js/bundle.js:102200
+[     271ms] [LOG] [AuthContext] Token in localStorage: none @ http://localhost:3000/static/js/bundle.js:102203
+[     271ms] [LOG] [AuthContext] Setting isLoading to false @ http://localhost:3000/static/js/bundle.js:102220
+[     271ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: false, isLoading: false} @ http://localhost:3000/static/js/bundle.js:96176
+[     271ms] [LOG] [ProtectedRoute] Not authenticated, redirecting to /login @ http://localhost:3000/static/js/bundle.js:96201
+[     271ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: false, isLoading: false} @ http://localhost:3000/static/js/bundle.js:96176
+[     272ms] [LOG] [ProtectedRoute] Not authenticated, redirecting to /login @ http://localhost:3000/static/js/bundle.js:96201
+[     400ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[   10345ms] [LOG] [Login] Form submitted {email: coach.playwright@test.local, password: ***} @ http://localhost:3000/static/js/bundle.js:94814
+[   10345ms] [LOG] [Login] Calling login API... @ http://localhost:3000/static/js/bundle.js:94819
+[   10345ms] [LOG] [AuthContext] login called {email: coach.playwright@test.local} @ http://localhost:3000/static/js/bundle.js:102225
+[   10482ms] [LOG] [AuthContext] login API result: {success: true, user: Object, token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjI5N…DYxfQ.5ZbBlZz1EGenv88N11IFWdFhEtgoURMTzh-hFZ37xAY} @ http://localhost:3000/static/js/bundle.js:102233
+[   10482ms] [LOG] [AuthContext] Token saved, setting user: {id: 29461be8-12a3-46de-9e21-e45cdd86715f, email: coach.playwright@test.local, username: coach_pw, created_at: 2026-04-27T12:03:56.265Z} @ http://localhost:3000/static/js/bundle.js:102236
+[   10482ms] [LOG] [Login] Login successful, navigating to / @ http://localhost:3000/static/js/bundle.js:94821
+[   10491ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: true, isLoading: false} @ http://localhost:3000/static/js/bundle.js:96176
+[   10491ms] [LOG] [ProtectedRoute] Authenticated, rendering children @ http://localhost:3000/static/js/bundle.js:96211
+[   10491ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: true, isLoading: false} @ http://localhost:3000/static/js/bundle.js:96176
+[   10491ms] [LOG] [ProtectedRoute] Authenticated, rendering children @ http://localhost:3000/static/js/bundle.js:96211
+[   98021ms] [LOG] Shot received: {shot_number: 1, timestamp: 2026-04-27T12:05:48.716Z, landing_position_x: 5.64, landing_position_y: 0, target_position_x: 5.64} @ :25
+[   98525ms] [LOG] Session stats updated: {total_shots: 1, successful_shots: 1, average_accuracy_percent: 100, average_shot_velocity_kmh: 220, average_score: 100} @ :25
+[   99193ms] [LOG] Shot received: {shot_number: 2, timestamp: 2026-04-27T12:05:49.922Z, landing_position_x: 5.64, landing_position_y: 0, target_position_x: 5.64} @ :25
+[   99698ms] [LOG] Session stats updated: {total_shots: 2, successful_shots: 2, average_accuracy_percent: 100, average_shot_velocity_kmh: 220, average_score: 100} @ :25
+[  100408ms] [LOG] Shot received: {shot_number: 3, timestamp: 2026-04-27T12:05:51.128Z, landing_position_x: 0.46, landing_position_y: -6.7, target_position_x: 0.46} @ :25
+[  100908ms] [LOG] Session stats updated: {total_shots: 3, successful_shots: 3, average_accuracy_percent: 100, average_shot_velocity_kmh: 220, average_score: 100} @ :25
+[  101613ms] [LOG] Shot received: {shot_number: 4, timestamp: 2026-04-27T12:05:52.333Z, landing_position_x: 5.64, landing_position_y: -2.36, target_position_x: 5.64} @ :25
+[  102119ms] [LOG] Session stats updated: {total_shots: 4, successful_shots: 4, average_accuracy_percent: 100, average_shot_velocity_kmh: 220, average_score: 100} @ :25
+[  102794ms] [LOG] Shot received: {shot_number: 5, timestamp: 2026-04-27T12:05:53.538Z, landing_position_x: 0.46, landing_position_y: -6.7, target_position_x: 0.46} @ :25
+[  103295ms] [LOG] Session stats updated: {total_shots: 5, successful_shots: 5, average_accuracy_percent: 100, average_shot_velocity_kmh: 220, average_score: 100} @ :25
+[  103996ms] [LOG] Shot received: {shot_number: 6, timestamp: 2026-04-27T12:05:54.744Z, landing_position_x: 5.64, landing_position_y: 0, target_position_x: 5.64} @ :25
+[  104503ms] [LOG] Session stats updated: {total_shots: 6, successful_shots: 6, average_accuracy_percent: 100, average_shot_velocity_kmh: 220, average_score: 100} @ :25
+[  105206ms] [LOG] Shot received: {shot_number: 7, timestamp: 2026-04-27T12:05:55.945Z, landing_position_x: 5.64, landing_position_y: -2.36, target_position_x: 5.64} @ :25
+[  105713ms] [LOG] Session stats updated: {total_shots: 7, successful_shots: 7, average_accuracy_percent: 100, average_shot_velocity_kmh: 220, average_score: 100} @ :25
+[  119314ms] [LOG] Session ended @ :25

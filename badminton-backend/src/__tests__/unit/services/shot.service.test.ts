@@ -29,10 +29,9 @@ describe('ShotService', () => {
         targetPositionX: 5.0,
         targetPositionY: 3.0,
         accuracyCm: 15.5,
-        accuracyPercent: 85,
+        score: 85,
         velocityKmh: 120,
         detectionConfidence: 0.95,
-        wasSuccessful: true,
         courtZone: 'front_left' as const,
       };
 
@@ -46,10 +45,9 @@ describe('ShotService', () => {
         target_position_x: 5.0,
         target_position_y: 3.0,
         accuracy_cm: 15.5,
-        accuracy_percent: 85,
+        score: 85,
         velocity_kmh: 120,
         detection_confidence: 0.95,
-        was_successful: true,
         court_zone: 'front_left',
       };
 
@@ -67,15 +65,14 @@ describe('ShotService', () => {
         target_position_x: 5.0,
         target_position_y: 3.0,
         accuracy_cm: 15.5,
-        accuracy_percent: 85,
+        score: 85,
         velocity_kmh: 120,
         detection_confidence: 0.95,
-        was_successful: true,
         court_zone: 'front_left',
       });
       expect(mockShotRepository.save).toHaveBeenCalledWith(mockShot);
       expect(result.id).toBe('shot-123');
-      expect(result.accuracy_percent).toBe(85);
+      expect(result.score).toBe(85);
     });
 
     it('should create shot with optional fields undefined', async () => {
@@ -88,8 +85,7 @@ describe('ShotService', () => {
         targetPositionX: 6.0,
         targetPositionY: 4.0,
         accuracyCm: 0,
-        accuracyPercent: 100,
-        wasSuccessful: true,
+        score: 100,
         courtZone: 'front_right' as const,
       };
 
@@ -103,10 +99,9 @@ describe('ShotService', () => {
         target_position_x: 6.0,
         target_position_y: 4.0,
         accuracy_cm: 0,
-        accuracy_percent: 100,
+        score: 100,
         velocity_kmh: undefined,
         detection_confidence: undefined,
-        was_successful: true,
         court_zone: 'front_right',
       };
 
@@ -127,21 +122,21 @@ describe('ShotService', () => {
           id: 'shot-1',
           session: { id: 'session-123' },
           shot_number: 1,
-          accuracy_percent: 85,
+          score: 85,
           timestamp: new Date(),
         },
         {
           id: 'shot-2',
           session: { id: 'session-123' },
           shot_number: 2,
-          accuracy_percent: 90,
+          score: 90,
           timestamp: new Date(),
         },
         {
           id: 'shot-3',
           session: { id: 'session-123' },
           shot_number: 3,
-          accuracy_percent: 80,
+          score: 80,
           timestamp: new Date(),
         },
       ];
@@ -190,9 +185,8 @@ describe('ShotService', () => {
         id: 'shot-123',
         session: { id: 'session-123' },
         shot_number: 1,
-        accuracy_percent: 85,
+        score: 85,
         velocity_kmh: 120,
-        was_successful: true,
         timestamp: new Date(),
       };
 
@@ -228,10 +222,9 @@ describe('ShotService', () => {
         targetPositionX: 0.46,
         targetPositionY: -6.70,
         accuracyCm: 50.6,
-        accuracyPercent: 74.7,
+        score: 74.7,
         velocityKmh: 110,
         detectionConfidence: 0.92,
-        wasSuccessful: false,
         courtZone: 'back_left' as const,
         inBox: true,
         targetPositionIndex: 0,
@@ -247,10 +240,9 @@ describe('ShotService', () => {
         target_position_x: 0.46,
         target_position_y: -6.70,
         accuracy_cm: 50.6,
-        accuracy_percent: 74.7,
+        score: 74.7,
         velocity_kmh: 110,
         detection_confidence: 0.92,
-        was_successful: false,
         court_zone: 'back_left',
         in_box: true,
         target_position_index: 0,
@@ -281,10 +273,9 @@ describe('ShotService', () => {
         targetPositionX: 5.26,
         targetPositionY: -2.36,
         accuracyCm: 230,
-        accuracyPercent: 0,
+        score: 0,
         velocityKmh: 95,
         detectionConfidence: 0.88,
-        wasSuccessful: false,
         courtZone: 'front_right' as const,
         inBox: false,
         targetPositionIndex: 1,
@@ -300,10 +291,9 @@ describe('ShotService', () => {
         target_position_x: 5.26,
         target_position_y: -2.36,
         accuracy_cm: 230,
-        accuracy_percent: 0,
+        score: 0,
         velocity_kmh: 95,
         detection_confidence: 0.88,
-        was_successful: false,
         court_zone: 'front_right',
         in_box: false,
         target_position_index: 1,
@@ -328,8 +318,7 @@ describe('ShotService', () => {
         targetPositionX: 5.0,
         targetPositionY: 3.0,
         accuracyCm: 0,
-        accuracyPercent: 100,
-        wasSuccessful: true,
+        score: 100,
         courtZone: 'front_left' as const,
         // inBox and targetPositionIndex not provided
       };
@@ -344,8 +333,7 @@ describe('ShotService', () => {
         target_position_x: 5.0,
         target_position_y: 3.0,
         accuracy_cm: 0,
-        accuracy_percent: 100,
-        was_successful: true,
+        score: 100,
         court_zone: 'front_left',
         in_box: undefined,
         target_position_index: undefined,
@@ -380,9 +368,8 @@ describe('ShotService', () => {
           targetPositionX: 5.0,
           targetPositionY: 3.0,
           accuracyCm: 10,
-          accuracyPercent: 95,
-          wasSuccessful: true,
-          courtZone: 'front_left' as const,
+          score: 95,
+            courtZone: 'front_left' as const,
           inBox: true,
           targetPositionIndex: positionIndices[i],
         };
@@ -397,9 +384,8 @@ describe('ShotService', () => {
           target_position_x: 5.0,
           target_position_y: 3.0,
           accuracy_cm: 10,
-          accuracy_percent: 95,
-          was_successful: true,
-          court_zone: 'front_left',
+          score: 95,
+            court_zone: 'front_left',
           in_box: true,
           target_position_index: positionIndices[i],
         };
@@ -425,10 +411,9 @@ describe('ShotService', () => {
         targetPositionX: 5.0,
         targetPositionY: 3.0,
         accuracyCm: 0,
-        accuracyPercent: 100,
+        score: 100,
         velocityKmh: 150,
         detectionConfidence: 1.0,
-        wasSuccessful: true,
         courtZone: 'back_left' as const,
       };
 
@@ -442,10 +427,9 @@ describe('ShotService', () => {
         target_position_x: 5.0,
         target_position_y: 3.0,
         accuracy_cm: 0,
-        accuracy_percent: 100,
+        score: 100,
         velocity_kmh: 150,
         detection_confidence: 1.0,
-        was_successful: true,
         court_zone: 'back_left',
       };
 
@@ -455,8 +439,7 @@ describe('ShotService', () => {
       const result = await shotService.createShot(perfectShot);
 
       expect(result.accuracy_cm).toBe(0);
-      expect(result.accuracy_percent).toBe(100);
-      expect(result.was_successful).toBe(true);
+      expect(result.score).toBe(100);
     });
 
     it('should handle minimum accuracy (failed shot)', async () => {
@@ -469,10 +452,9 @@ describe('ShotService', () => {
         targetPositionX: 10.0,
         targetPositionY: 5.0,
         accuracyCm: 500,
-        accuracyPercent: 0,
+        score: 0,
         velocityKmh: 50,
         detectionConfidence: 0.6,
-        wasSuccessful: false,
         courtZone: 'unknown' as const,
       };
 
@@ -486,10 +468,9 @@ describe('ShotService', () => {
         target_position_x: 10.0,
         target_position_y: 5.0,
         accuracy_cm: 500,
-        accuracy_percent: 0,
+        score: 0,
         velocity_kmh: 50,
         detection_confidence: 0.6,
-        was_successful: false,
         court_zone: 'unknown',
       };
 
@@ -498,8 +479,7 @@ describe('ShotService', () => {
 
       const result = await shotService.createShot(failedShot);
 
-      expect(result.was_successful).toBe(false);
-      expect(result.accuracy_percent).toBe(0);
+      expect(result.score).toBe(0);
     });
   });
 });

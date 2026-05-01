@@ -31,16 +31,13 @@ export class TrainingSession {
   total_shots!: number;
 
   @Column({ type: 'integer', default: 0 })
-  successful_shots!: number;
-
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-  average_accuracy_percent?: number;
-
-  @Column({ type: 'decimal', precision: 6, scale: 2, nullable: true })
-  average_shot_velocity_kmh?: number;
+  in_box_shots!: number;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
   average_score?: number;  // Arithmetic mean of all shot scores in session
+
+  @Column({ type: 'decimal', precision: 6, scale: 2, nullable: true })
+  average_shot_velocity_kmh?: number;
 
   @Column({ nullable: true })
   target_zone?: string;

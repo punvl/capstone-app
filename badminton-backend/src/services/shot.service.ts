@@ -12,14 +12,12 @@ interface CreateShotData {
   targetPositionX: number;
   targetPositionY: number;
   accuracyCm: number;
-  accuracyPercent: number;
+  score: number;
   velocityKmh?: number;
   detectionConfidence?: number;
-  wasSuccessful: boolean;
   courtZone: CourtZone;
   inBox?: boolean; // Was landing inside target box?
   targetPositionIndex?: number; // Which position in cycle (0, 1, 2...)
-  score?: number; // Shot score (0-100)
 }
 
 class ShotService {
@@ -42,14 +40,12 @@ class ShotService {
       target_position_x: data.targetPositionX,
       target_position_y: data.targetPositionY,
       accuracy_cm: data.accuracyCm,
-      accuracy_percent: data.accuracyPercent,
+      score: data.score,
       velocity_kmh: data.velocityKmh,
       detection_confidence: data.detectionConfidence,
-      was_successful: data.wasSuccessful,
       court_zone: data.courtZone,
       in_box: data.inBox,
       target_position_index: data.targetPositionIndex,
-      score: data.score,
     });
 
     return await this.shotRepository.save(shot);

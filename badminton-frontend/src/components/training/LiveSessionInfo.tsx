@@ -6,8 +6,7 @@ interface LiveSessionInfoProps {
   session: {
     start_time: string;
     total_shots: number;
-    successful_shots: number;
-    average_score?: number;
+    in_box_shots: number;
   };
   templateName?: string;
   currentPositionIndex?: number;
@@ -52,11 +51,11 @@ const LiveSessionInfo: React.FC<LiveSessionInfoProps> = ({
     return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
   }, [session.start_time]);
 
-  // OPTIMIZATION: Memoize success rate calculation
-  const successRate = useMemo(() => {
+  // OPTIMIZATION: Memoize in-box rate calculation
+  const inBoxRate = useMemo(() => {
     if (session.total_shots === 0) return 0;
-    return ((session.successful_shots / session.total_shots) * 100).toFixed(1);
-  }, [session.total_shots, session.successful_shots]);
+    return ((session.in_box_shots / session.total_shots) * 100).toFixed(1);
+  }, [session.total_shots, session.in_box_shots]);
 
   return (
     <Card sx={{
@@ -100,30 +99,19 @@ const LiveSessionInfo: React.FC<LiveSessionInfoProps> = ({
 
           <Box>
             <Typography sx={{ fontSize: '0.7rem', color: '#8B9EC4', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, mb: 0.25 }}>
-              On Target
+              In Box
             </Typography>
             <Typography sx={{ fontFamily: '"Bebas Neue", cursive', fontSize: '1.8rem', color: '#F59E0B', lineHeight: 1, letterSpacing: '0.04em' }}>
-              {session.successful_shots}
+              {session.in_box_shots}
             </Typography>
           </Box>
 
           <Box>
             <Typography sx={{ fontSize: '0.7rem', color: '#8B9EC4', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, mb: 0.25 }}>
-              Success Rate
+              In-Box Rate
             </Typography>
             <Typography sx={{ fontFamily: '"Bebas Neue", cursive', fontSize: '1.8rem', color: '#A78BFA', lineHeight: 1, letterSpacing: '0.04em' }}>
-              {successRate}%
-            </Typography>
-          </Box>
-
-          <Box>
-            <Typography sx={{ fontSize: '0.7rem', color: '#8B9EC4', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, mb: 0.25 }}>
-              Avg Score
-            </Typography>
-            <Typography sx={{ fontFamily: '"Bebas Neue", cursive', fontSize: '1.8rem', color: '#60A5FA', lineHeight: 1, letterSpacing: '0.04em' }}>
-              {session.average_score !== undefined && session.average_score !== null
-                ? Number(session.average_score).toFixed(1)
-                : '—'}
+              {inBoxRate}%
             </Typography>
           </Box>
         </Box>

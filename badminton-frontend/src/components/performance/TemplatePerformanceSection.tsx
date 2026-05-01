@@ -33,16 +33,16 @@ const POSITION_COLORS = ['#60A5FA', '#00E5A0', '#F59E0B', '#A78BFA', '#F87171'];
 
 function computePositionStats(shots: Shot[]) {
   if (shots.length === 0) return null;
-  const withAccuracy = shots.filter((s) => s.accuracy_percent != null);
-  const avgAccuracy = withAccuracy.length > 0
-    ? withAccuracy.reduce((sum, s) => sum + Number(s.accuracy_percent), 0) / withAccuracy.length : 0;
+  const withScore = shots.filter((s) => s.score != null);
+  const avgScore = withScore.length > 0
+    ? withScore.reduce((sum, s) => sum + Number(s.score), 0) / withScore.length : 0;
   const withInBox = shots.filter((s) => s.in_box != null);
   const inBoxPct = withInBox.length > 0
     ? (withInBox.filter((s) => s.in_box).length / withInBox.length) * 100 : 0;
-  return { avgAccuracy, inBoxPct, count: shots.length };
+  return { avgScore, inBoxPct, count: shots.length };
 }
 
-function accuracyColor(v: number) {
+function scoreColor(v: number) {
   return v >= 70 ? '#00E5A0' : v >= 40 ? '#FBBF24' : '#F87171';
 }
 
@@ -129,7 +129,7 @@ const TemplatePerformanceSection: React.FC<TemplatePerformanceSectionProps> = ({
                   <TableRow>
                     <TableCell>Template</TableCell>
                     <TableCell align="center">Sessions</TableCell>
-                    <TableCell align="center">Avg Accuracy</TableCell>
+                    <TableCell align="center">Avg Score</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -145,9 +145,9 @@ const TemplatePerformanceSection: React.FC<TemplatePerformanceSectionProps> = ({
                         </TableRow>
                       );
                     }
-                    const withAcc = tSessions.filter((s) => s.average_accuracy_percent != null);
-                    const avgAcc = withAcc.length > 0
-                      ? withAcc.reduce((sum, s) => sum + Number(s.average_accuracy_percent), 0) / withAcc.length : 0;
+                    const withScore = tSessions.filter((s) => s.average_score != null);
+                    const avgScore = withScore.length > 0
+                      ? withScore.reduce((sum, s) => sum + Number(s.average_score), 0) / withScore.length : 0;
                     return (
                       <TableRow key={t.id} hover sx={{ cursor: 'pointer' }} onClick={() => setSelectedId(t.id)}>
                         <TableCell>
@@ -158,8 +158,8 @@ const TemplatePerformanceSection: React.FC<TemplatePerformanceSectionProps> = ({
                         </TableCell>
                         <TableCell align="center" sx={{ fontWeight: 600, color: '#00E5A0' }}>{tSessions.length}</TableCell>
                         <TableCell align="center">
-                          <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: accuracyColor(avgAcc) }}>
-                            {avgAcc.toFixed(1)}%
+                          <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: scoreColor(avgScore) }}>
+                            {avgScore.toFixed(1)}
                           </Typography>
                         </TableCell>
                       </TableRow>
@@ -175,7 +175,7 @@ const TemplatePerformanceSection: React.FC<TemplatePerformanceSectionProps> = ({
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <ShowChart sx={{ fontSize: 15, color: '#8B9EC4' }} />
                 <Typography sx={{ fontSize: '0.75rem', color: '#8B9EC4', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
-                  Accuracy Trend (per session)
+                  Score Trend (per session)
                 </Typography>
               </Box>
               {isLoading && !allTemplatesShotsLoaded ? (
@@ -185,7 +185,7 @@ const TemplatePerformanceSection: React.FC<TemplatePerformanceSectionProps> = ({
                   sessions={allTemplateSessions}
                   shotDataBySessionId={shotDataBySessionId}
                   mode="by-template"
-                  metric="accuracy"
+                  metric="score"
                   templates={templates}
                 />
               )}
@@ -259,7 +259,7 @@ const TemplatePerformanceSection: React.FC<TemplatePerformanceSectionProps> = ({
                           <TableRow>
                             <TableCell>Position</TableCell>
                             <TableCell align="center">Shots</TableCell>
-                            <TableCell align="center">Accuracy</TableCell>
+                            <TableCell align="center">Score</TableCell>
                             <TableCell align="center">In-Box</TableCell>
                           </TableRow>
                         </TableHead>
@@ -282,14 +282,14 @@ const TemplatePerformanceSection: React.FC<TemplatePerformanceSectionProps> = ({
                                 </TableCell>
                                 <TableCell align="center">
                                   {stats ? (
-                                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: accuracyColor(stats.avgAccuracy) }}>
-                                      {stats.avgAccuracy.toFixed(1)}%
+                                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: scoreColor(stats.avgScore) }}>
+                                      {stats.avgScore.toFixed(1)}
                                     </Typography>
                                   ) : <Typography sx={{ color: '#4B5563', fontSize: '0.875rem' }}>—</Typography>}
                                 </TableCell>
                                 <TableCell align="center">
                                   {stats ? (
-                                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: accuracyColor(stats.inBoxPct) }}>
+                                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: scoreColor(stats.inBoxPct) }}>
                                       {stats.inBoxPct.toFixed(1)}%
                                     </Typography>
                                   ) : <Typography sx={{ color: '#4B5563', fontSize: '0.875rem' }}>—</Typography>}
@@ -310,14 +310,14 @@ const TemplatePerformanceSection: React.FC<TemplatePerformanceSectionProps> = ({
                                 </TableCell>
                                 <TableCell align="center">
                                   {stats ? (
-                                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: accuracyColor(stats.avgAccuracy) }}>
-                                      {stats.avgAccuracy.toFixed(1)}%
+                                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: scoreColor(stats.avgScore) }}>
+                                      {stats.avgScore.toFixed(1)}
                                     </Typography>
                                   ) : <Typography sx={{ color: '#4B5563', fontSize: '0.875rem' }}>—</Typography>}
                                 </TableCell>
                                 <TableCell align="center">
                                   {stats ? (
-                                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: accuracyColor(stats.inBoxPct) }}>
+                                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: scoreColor(stats.inBoxPct) }}>
                                       {stats.inBoxPct.toFixed(1)}%
                                     </Typography>
                                   ) : <Typography sx={{ color: '#4B5563', fontSize: '0.875rem' }}>—</Typography>}
@@ -333,12 +333,12 @@ const TemplatePerformanceSection: React.FC<TemplatePerformanceSectionProps> = ({
 
                 <Divider />
 
-                {/* Accuracy trend */}
+                {/* Score trend */}
                 <Box sx={{ px: 3, py: 2.5 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                     <ShowChart sx={{ fontSize: 15, color: '#8B9EC4' }} />
                     <Typography sx={{ fontSize: '0.75rem', color: '#8B9EC4', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
-                      Accuracy Trend (per session)
+                      Score Trend (per session)
                     </Typography>
                   </Box>
                   {isLoading && !hasLoadedShots ? (
@@ -347,7 +347,7 @@ const TemplatePerformanceSection: React.FC<TemplatePerformanceSectionProps> = ({
                     <PerformanceTrendChart
                       sessions={templateSessions}
                       shotDataBySessionId={shotDataBySessionId}
-                      metric="accuracy"
+                      metric="score"
                       positionCount={selectedTemplate.positions.length}
                     />
                   )}

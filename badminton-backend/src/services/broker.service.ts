@@ -5,7 +5,7 @@ import { shotService } from './shot.service';
 import { sessionService } from './session.service';
 import { templateService } from './template.service';
 import { socketHandler } from '../websocket/socket.handler';
-import { calculateAccuracy, determineCourtZone, calculateAccuracyPercent, isPointInBox, calculateScore } from '../utils/court.utils';
+import { calculateAccuracy, determineCourtZone, calculateScore, isPointInBox } from '../utils/court.utils';
 import { logShotLatency, logLatencyStatus } from '../utils/latency';
 
 class BrokerService {
@@ -167,12 +167,10 @@ class BrokerService {
       y: landingPosition.y / 100,
     };
 
-    // Calculate accuracy (in cm, using meter positions)
+    // Calculate accuracy (in cm) and derived score (0-100)
     const accuracyCm = calculateAccuracy(targetPosition, landingInMeters);
-    const accuracyPercent = calculateAccuracyPercent(accuracyCm);
-    const courtZone = determineCourtZone(landingInMeters);
-    const wasSuccessful = inBox === true;
     const score = calculateScore(accuracyCm);
+    const courtZone = determineCourtZone(landingInMeters);
 
     // Save shot to database (store positions in meters for consistency)
     // Shot.timestamp semantically means "when CV detected the landing"
@@ -185,23 +183,20 @@ class BrokerService {
       targetPositionX: targetPosition.x,
       targetPositionY: targetPosition.y,
       accuracyCm,
-      accuracyPercent,
+      score,
       velocityKmh: velocity,
       detectionConfidence,
-      wasSuccessful,
       courtZone,
       inBox,
       targetPositionIndex,
-      score,
     });
 
     // OPTIMIZATION 1: Incremental stats update (O(1) vs O(n))
     const updatedSession = await sessionService.incrementalUpdateStats(
       sessionId,
-      accuracyPercent,
+      score,
       velocity ?? 0,
-      wasSuccessful,
-      score
+      inBox === true
     );
 
     // OPTIMIZATION 2: Immediate shot broadcast (real-time UX)
@@ -230,10 +225,9 @@ class BrokerService {
     // OPTIMIZATION 3: Debounced stats broadcast (reduce WebSocket overhead)
     this.scheduleDebouncedStatsBroadcast(sessionId, {
       total_shots: updatedSession.total_shots || 0,
-      successful_shots: updatedSession.successful_shots || 0,
-      average_accuracy_percent: Number(updatedSession.average_accuracy_percent || 0),
-      average_shot_velocity_kmh: Number(updatedSession.average_shot_velocity_kmh || 0),
+      in_box_shots: updatedSession.in_box_shots || 0,
       average_score: Number(updatedSession.average_score || 0),
+      average_shot_velocity_kmh: Number(updatedSession.average_shot_velocity_kmh || 0),
     });
   }
 
@@ -245,10 +239,9 @@ class BrokerService {
     sessionId: string,
     stats: {
       total_shots: number;
-      successful_shots: number;
-      average_accuracy_percent: number;
-      average_shot_velocity_kmh: number;
+      in_box_shots: number;
       average_score: number;
+      average_shot_velocity_kmh: number;
     }
   ): void {
     // Cancel existing pending broadcast

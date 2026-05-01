@@ -15,7 +15,7 @@ import { TrainingSession, Shot, TargetTemplate } from '../../types';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-export type TrendMetric = 'accuracy' | 'inBox';
+export type TrendMetric = 'score' | 'inBox';
 export type TrendMode = 'by-position' | 'by-template';
 
 interface PerformanceTrendChartProps {
@@ -35,9 +35,9 @@ const TEMPLATE_COLORS = ['#60A5FA', '#00E5A0', '#F59E0B'];
 
 function extractMetricValue(shots: Shot[], metric: TrendMetric): number | null {
   if (shots.length === 0) return null;
-  if (metric === 'accuracy') {
-    const valid = shots.filter((s) => s.accuracy_percent != null);
-    return valid.length > 0 ? valid.reduce((sum, s) => sum + Number(s.accuracy_percent), 0) / valid.length : null;
+  if (metric === 'score') {
+    const valid = shots.filter((s) => s.score != null);
+    return valid.length > 0 ? valid.reduce((sum, s) => sum + Number(s.score), 0) / valid.length : null;
   }
   // inBox
   const valid = shots.filter((s) => s.in_box != null);
@@ -47,7 +47,7 @@ function extractMetricValue(shots: Shot[], metric: TrendMetric): number | null {
 const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({
   sessions,
   shotDataBySessionId,
-  metric = 'accuracy',
+  metric = 'score',
   mode = 'by-position',
   positionCount = 0,
   templates,
@@ -145,8 +145,11 @@ const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({
             },
             tooltip: {
               callbacks: {
-                label: (ctx) =>
-                  `${ctx.dataset.label}: ${ctx.parsed.y != null ? ctx.parsed.y.toFixed(1) + '%' : 'N/A'}`,
+                label: (ctx) => {
+                  if (ctx.parsed.y == null) return `${ctx.dataset.label}: N/A`;
+                  const suffix = metric === 'inBox' ? '%' : '';
+                  return `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}${suffix}`;
+                },
               },
             },
           },
@@ -158,7 +161,11 @@ const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({
             y: {
               min: 0,
               max: 100,
-              ticks: { color: '#8B9EC4', font: { size: 11 }, callback: (v) => `${v}%` },
+              ticks: {
+                color: '#8B9EC4',
+                font: { size: 11 },
+                callback: (v) => (metric === 'inBox' ? `${v}%` : `${v}`),
+              },
               grid: { color: '#1E2D4550' },
             },
           },

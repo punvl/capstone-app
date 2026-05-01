@@ -124,16 +124,13 @@ const PerformanceDashboard: React.FC = () => {
     const completed = filteredSessions.filter((s) => s.status === 'completed');
     if (completed.length === 0) return null;
     const totalShots = completed.reduce((sum, s) => sum + (s.total_shots || 0), 0);
-    const withAccuracy = completed.filter((s) => s.average_accuracy_percent != null);
-    const avgAccuracy = withAccuracy.length > 0
-      ? withAccuracy.reduce((sum, s) => sum + Number(s.average_accuracy_percent), 0) / withAccuracy.length : 0;
-    const withVelocity = completed.filter((s) => s.average_shot_velocity_kmh != null);
-    const avgVelocity = withVelocity.length > 0
-      ? withVelocity.reduce((sum, s) => sum + Number(s.average_shot_velocity_kmh), 0) / withVelocity.length : 0;
     const withScore = completed.filter((s) => s.average_score != null);
     const avgScore = withScore.length > 0
       ? withScore.reduce((sum, s) => sum + Number(s.average_score), 0) / withScore.length : 0;
-    return { totalSessions: completed.length, totalShots, avgAccuracy, avgVelocity, avgScore };
+    const withVelocity = completed.filter((s) => s.average_shot_velocity_kmh != null);
+    const avgVelocity = withVelocity.length > 0
+      ? withVelocity.reduce((sum, s) => sum + Number(s.average_shot_velocity_kmh), 0) / withVelocity.length : 0;
+    return { totalSessions: completed.length, totalShots, avgScore, avgVelocity };
   }, [filteredSessions]);
 
   const selectedAthlete = athletes.find((a) => a.id === selectedAthleteId);
@@ -185,12 +182,11 @@ const PerformanceDashboard: React.FC = () => {
 
       {/* Overview Stats */}
       {stats && (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' }, gap: 2, mb: 3 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
           <StatCard value={String(stats.totalSessions)} label="Total Sessions" accentColor="#60A5FA" icon={<FitnessCenter />} />
           <StatCard value={String(stats.totalShots)} label="Total Shots" accentColor="#00E5A0" icon={<Adjust />} />
-          <StatCard value={`${isNaN(stats.avgAccuracy) ? '0.0' : stats.avgAccuracy.toFixed(1)}%`} label="Avg Accuracy" accentColor="#F59E0B" icon={<TrendingUp />} />
+          <StatCard value={`${isNaN(stats.avgScore) ? '0.0' : stats.avgScore.toFixed(1)}`} label="Avg Score" accentColor="#F59E0B" icon={<TrendingUp />} />
           <StatCard value={`${isNaN(stats.avgVelocity) ? '0.0' : stats.avgVelocity.toFixed(1)}`} label="Avg Velocity km/h" accentColor="#A78BFA" icon={<Speed />} />
-          <StatCard value={`${isNaN(stats.avgScore) ? '0.0' : stats.avgScore.toFixed(1)}`} label="Avg Score" accentColor="#60A5FA" icon={<TrendingUp />} />
         </Box>
       )}
 

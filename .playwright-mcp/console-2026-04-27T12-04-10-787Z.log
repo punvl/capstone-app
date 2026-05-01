@@ -1,0 +1,24 @@
+[     124ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/static/js/bundle.js:55018
+[     157ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: false, isLoading: true} @ http://localhost:3000/static/js/bundle.js:77789
+[     158ms] [LOG] [ProtectedRoute] Showing loading spinner @ http://localhost:3000/static/js/bundle.js:77794
+[     158ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: false, isLoading: true} @ http://localhost:3000/static/js/bundle.js:77789
+[     158ms] [LOG] [ProtectedRoute] Showing loading spinner @ http://localhost:3000/static/js/bundle.js:77794
+[     168ms] [LOG] [AuthContext] checkAuth started @ http://localhost:3000/static/js/bundle.js:81249
+[     169ms] [LOG] [AuthContext] Token in localStorage: exists @ http://localhost:3000/static/js/bundle.js:81252
+[     169ms] [LOG] [AuthContext] Calling getCurrentUser API... @ http://localhost:3000/static/js/bundle.js:81254
+[     171ms] [LOG] [AuthContext] checkAuth started @ http://localhost:3000/static/js/bundle.js:81249
+[     171ms] [LOG] [AuthContext] Token in localStorage: exists @ http://localhost:3000/static/js/bundle.js:81252
+[     171ms] [LOG] [AuthContext] Calling getCurrentUser API... @ http://localhost:3000/static/js/bundle.js:81254
+[     256ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/auth/me:0
+[     258ms] [LOG] [AuthContext] getCurrentUser result: {error: Invalid token} @ http://localhost:3000/static/js/bundle.js:81256
+[     258ms] [LOG] [AuthContext] getCurrentUser failed, removing token @ http://localhost:3000/static/js/bundle.js:81261
+[     258ms] [LOG] [AuthContext] Setting isLoading to false @ http://localhost:3000/static/js/bundle.js:81269
+[     258ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: false, isLoading: false} @ http://localhost:3000/static/js/bundle.js:77789
+[     258ms] [LOG] [ProtectedRoute] Not authenticated, redirecting to /login @ http://localhost:3000/static/js/bundle.js:77814
+[     258ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: false, isLoading: false} @ http://localhost:3000/static/js/bundle.js:77789
+[     258ms] [LOG] [ProtectedRoute] Not authenticated, redirecting to /login @ http://localhost:3000/static/js/bundle.js:77814
+[     265ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/auth/me:0
+[     276ms] [LOG] [AuthContext] getCurrentUser result: {error: Invalid token} @ http://localhost:3000/static/js/bundle.js:81256
+[     276ms] [LOG] [AuthContext] getCurrentUser failed, removing token @ http://localhost:3000/static/js/bundle.js:81261
+[     276ms] [LOG] [AuthContext] Setting isLoading to false @ http://localhost:3000/static/js/bundle.js:81269
+[     381ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0

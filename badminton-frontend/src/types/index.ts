@@ -29,14 +29,12 @@ export interface Shot {
   target_position_x: number;
   target_position_y: number;
   accuracy_cm: number;
-  accuracy_percent: number;
+  score: number;
   velocity_kmh?: number;
-  was_successful: boolean;
   court_zone?: string;
   detection_confidence?: number;
   in_box?: boolean;
   target_position_index?: number;
-  score?: number;
 }
 
 export interface TrainingSession {
@@ -47,10 +45,9 @@ export interface TrainingSession {
   end_time?: string;
   status: 'active' | 'completed' | 'cancelled' | 'paused';
   total_shots: number;
-  successful_shots: number;
-  average_accuracy_percent?: number;
-  average_shot_velocity_kmh?: number;
+  in_box_shots: number;
   average_score?: number;
+  average_shot_velocity_kmh?: number;
   target_zone?: string;
   session_notes?: string;
   session_rating?: number;

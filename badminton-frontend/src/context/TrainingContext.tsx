@@ -133,10 +133,9 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
         setCurrentSession({
           ...currentSession,
           total_shots: stats.total_shots || currentSession.total_shots,
-          successful_shots: stats.successful_shots || currentSession.successful_shots,
-          average_accuracy_percent: stats.average_accuracy_percent,
-          average_shot_velocity_kmh: stats.average_shot_velocity_kmh,
+          in_box_shots: stats.in_box_shots || currentSession.in_box_shots,
           average_score: stats.average_score,
+          average_shot_velocity_kmh: stats.average_shot_velocity_kmh,
         });
       }
     });

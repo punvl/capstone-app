@@ -289,7 +289,7 @@ for session_def in SESSIONS:
 
     # Build shots
     shots = []
-    total_acc_pct = 0.0
+    total_score = 0.0
     total_vel = 0.0
     successful = 0
 
@@ -315,9 +315,8 @@ for session_def in SESSIONS:
             lx = tx + offset * math.cos(angle)
             ly = ty + offset * math.sin(angle)
 
-        acc_pct = max(0.0, 100.0 - acc_cm * 0.5)
-        score = max(0.0, (200.0 - acc_cm) / 2.0)
-        total_acc_pct += acc_pct
+        score = max(0.0, 100.0 - acc_cm * 0.5)
+        total_score += score
         vel = random.uniform(vel_lo, vel_hi)
         total_vel += vel
         shot_ts = session_date + timedelta(seconds=i * 30 + random.randint(0, 10))
@@ -327,24 +326,21 @@ for session_def in SESSIONS:
             'pos_idx': pos_idx,
             'is_in_box': is_in_box,
             'acc_cm': acc_cm,
-            'acc_pct': acc_pct,
             'score': score,
             'vel': vel,
             'tx': tx, 'ty': ty,
             'lx': lx, 'ly': ly,
             'ts': shot_ts,
-            'was_successful': is_in_box,
         })
 
-    avg_acc = total_acc_pct / n_shots
+    avg_score = total_score / n_shots
     avg_vel = total_vel / n_shots
-    avg_score = sum(s['score'] for s in shots) / n_shots
     session_end = session_date + timedelta(minutes=random.randint(8, 15))
     rating = session_def.get('rating')
     notes = session_def.get('notes', '')
 
     lines.append(f"-- Session: {template}, {weeks_ago} weeks ago, {sum(in_box_pattern)}/{n_shots} in-box")
-    lines.append(f"""INSERT INTO training_sessions (id, athlete_id, coach_id, template_id, status, start_time, end_time, total_shots, successful_shots, average_accuracy_percent, average_shot_velocity_kmh, average_score, session_rating, session_notes, created_at, updated_at)
+    lines.append(f"""INSERT INTO training_sessions (id, athlete_id, coach_id, template_id, status, start_time, end_time, total_shots, in_box_shots, average_score, average_shot_velocity_kmh, session_rating, session_notes, created_at, updated_at)
 VALUES (
   '{session_id}',
   '{ATHLETE_ID}',
@@ -355,9 +351,8 @@ VALUES (
   '{session_end.strftime('%Y-%m-%d %H:%M:%S')}',
   {n_shots},
   {successful},
-  {avg_acc:.2f},
-  {avg_vel:.2f},
   {avg_score:.2f},
+  {avg_vel:.2f},
   {rating if rating else 'NULL'},
   {sql_str(notes)},
   NOW(),
@@ -372,23 +367,21 @@ VALUES (
             f"'{s['ts'].strftime('%Y-%m-%d %H:%M:%S')}', "
             f"{s['lx']:.4f}, {s['ly']:.4f}, "
             f"{s['tx']:.4f}, {s['ty']:.4f}, "
-            f"{s['acc_cm']:.2f}, {s['acc_pct']:.2f}, "
+            f"{s['acc_cm']:.2f}, {s['score']:.2f}, "
             f"{s['vel']:.2f}, "
-            f"{'true' if s['was_successful'] else 'false'}, "
             f"{'true' if s['is_in_box'] else 'false'}, "
             f"{s['pos_idx']}, "
-            f"0.950, "
-            f"{s['score']:.2f})"
+            f"0.950)"
         )
 
     shot_rows = ',\n'.join(shot_values)
-    lines.append(f"""INSERT INTO shots (id, session_id, shot_number, timestamp, landing_position_x, landing_position_y, target_position_x, target_position_y, accuracy_cm, accuracy_percent, velocity_kmh, was_successful, in_box, target_position_index, detection_confidence, score)
+    lines.append(f"""INSERT INTO shots (id, session_id, shot_number, timestamp, landing_position_x, landing_position_y, target_position_x, target_position_y, accuracy_cm, score, velocity_kmh, in_box, target_position_index, detection_confidence)
 VALUES
 {shot_rows};""")
     lines.append("")
 
 lines.append("-- Summary")
 lines.append(f"SELECT athlete_name, skill_level FROM athletes WHERE id = '{ATHLETE_ID}';")
-lines.append(f"SELECT template_id, status, total_shots, average_accuracy_percent, session_rating FROM training_sessions WHERE athlete_id = '{ATHLETE_ID}' ORDER BY start_time;")
+lines.append(f"SELECT template_id, status, total_shots, average_score, session_rating FROM training_sessions WHERE athlete_id = '{ATHLETE_ID}' ORDER BY start_time;")
 
 print('\n'.join(lines))

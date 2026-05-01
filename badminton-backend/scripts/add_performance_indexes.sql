@@ -62,9 +62,9 @@ ON shots(session_id, shot_number);
 CREATE INDEX IF NOT EXISTS idx_shots_accuracy
 ON shots(accuracy_cm);
 
--- Successful shots filter
-CREATE INDEX IF NOT EXISTS idx_shots_was_successful
-ON shots(was_successful);
+-- In-box shots filter
+CREATE INDEX IF NOT EXISTS idx_shots_in_box
+ON shots(in_box);
 
 -- Timestamp for chronological ordering
 CREATE INDEX IF NOT EXISTS idx_shots_timestamp

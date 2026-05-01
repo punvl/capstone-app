@@ -33,9 +33,9 @@ export const determineCourtZone = (position: { x: number; y: number }): CourtZon
   return 'unknown';
 };
 
-export const calculateAccuracyPercent = (accuracyCm: number): number => {
-  // Accuracy percent decreases as distance from target increases
-  // 0cm = 100%, 50cm = 50%, 100cm+ = 0%
+export const calculateScore = (accuracyCm: number): number => {
+  // Score decreases as distance from target increases
+  // 0cm = 100, 50cm = 75, 100cm = 50, 200cm+ = 0
   return Math.max(0, 100 - (accuracyCm / 2));
 };
 
@@ -53,14 +53,6 @@ export const isPointInBox = (
   const maxY = Math.max(box.y1, box.y2);
 
   return point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY;
-};
-
-/**
- * Calculate shot score (0–100) based purely on distance from target
- * 0cm = 100, 100cm = 50, 200cm+ = 0
- */
-export const calculateScore = (accuracyCm: number): number => {
-  return Math.max(0, (200 - accuracyCm) / 2);
 };
 
 /**
