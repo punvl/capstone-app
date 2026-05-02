@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import fs from 'fs';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -28,6 +29,18 @@ app.use(express.urlencoded({ extended: true }));
 // Health check
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Badminton Training API is running' });
+});
+
+// Latency CSV download (only available when LATENCY_LOG=true)
+app.get('/api/debug/latency-csv', (req, res) => {
+  const csvPath = process.env.LATENCY_LOG_PATH || '/tmp/backend_latency.csv';
+  if (process.env.LATENCY_LOG !== 'true' && process.env.LATENCY_LOG !== '1') {
+    return res.status(404).json({ error: 'Latency logging is not enabled' });
+  }
+  if (!fs.existsSync(csvPath)) {
+    return res.status(404).json({ error: 'No latency CSV found — no shots logged yet' });
+  }
+  res.download(csvPath, 'backend_latency.csv');
 });
 
 // API routes
