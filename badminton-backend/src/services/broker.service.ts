@@ -117,7 +117,7 @@ class BrokerService {
             this.channel!.ack(msg);
           } catch (error) {
             console.error('[BROKER] Error processing shot data:', error);
-            this.channel!.nack(msg, false, true);
+            this.channel!.nack(msg, false, false); // discard: don't requeue poison messages
           }
         }
       },
