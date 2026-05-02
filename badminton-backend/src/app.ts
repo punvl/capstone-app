@@ -32,7 +32,7 @@ app.get('/health', (req, res) => {
 });
 
 // Latency CSV download (only available when LATENCY_LOG=true)
-app.get('/api/debug/latency-csv', (req, res) => {
+app.get('/api/debug/latency-csv', (_req, res) => {
   const csvPath = process.env.LATENCY_LOG_PATH || '/tmp/backend_latency.csv';
   if (process.env.LATENCY_LOG !== 'true' && process.env.LATENCY_LOG !== '1') {
     return res.status(404).json({ error: 'Latency logging is not enabled' });
@@ -50,7 +50,7 @@ app.use('/api/sessions', sessionRoutes);
 app.use('/api/templates', templateRoutes);
 
 // 404 handler
-app.use((req, res) => {
+app.use((_req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
